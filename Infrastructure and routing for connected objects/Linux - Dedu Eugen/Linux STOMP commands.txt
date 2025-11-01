@@ -1,0 +1,56 @@
+//Make STOMP connection
+
+(printf "CONNECT\nlogin:guest\npasscode:guest\nhost:/\n\n\x00"; cat -) | nc.traditional localhost 61613
+
+
+//Make STOMP subscriber (use ctrl+c & ctrl+v to input the null byte '^@')
+
+SUBSCRIBE
+destination:/topic/test
+id:sub-A
+ack:auto
+
+^@ 
+
+
+//Make STOMP publisher
+
+SEND
+destination:/topic/test
+
+Hello Message!
+^@
+
+
+//STOMP unsubscribe
+
+UNSUBSCRIBE
+id:sub-A
+
+^@
+
+
+//STOMP transaction begin
+
+BEGIN
+transaction:tx1
+
+^@
+
+
+//STOMP transaction message
+
+SEND
+destination:/topic/test
+transaction:tx1
+
+Tx Message 2
+^@
+
+
+//STOMP transaction end
+
+ABORT
+transaction:tx1
+
+^@
