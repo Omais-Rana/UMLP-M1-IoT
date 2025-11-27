@@ -1,0 +1,52 @@
+services:
+  # 1. The Broker - The "Post Office" for your data
+  mosquitto:
+    image: eclipse-mosquitto
+    container_name: mosquitto
+    ports:
+      - "1883:1883" # MQTT Port
+      - "9002:9001" # Websocket Port (for web clients)
+    volumes:
+      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
+      - ./mosquitto/data:/mosquitto/data
+      - ./mosquitto/log:/mosquitto/log
+
+  # 2. The Logic - The "Brain" that processes data
+  nodered:
+    image: nodered/node-red
+    container_name: nodered
+    ports:
+      - "1880:1880"
+    volumes:
+      - nodered_data:/data
+    depends_on:
+      - mosquitto
+
+  # 3. The Database - Stores history
+  influxdb:
+    image: influxdb:1.8
+    container_name: influxdb
+    ports:
+      - "8086:8086"
+    volumes:
+      - influxdb_data:/var/lib/influxdb
+    environment:
+      - INFLUXDB_DB=iot_data
+
+  # 4. The Dashboard - Visualizes data
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ALLOW_EMBEDDING=true  # Allows iframes
+      - GF_AUTH_ANONYMOUS_ENABLED=true    # No login needed to see charts
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer # Anonymous users can only READ
+
+volumes:
+  nodered_data:
+  influxdb_data:
+  grafana_data:
