@@ -24,8 +24,7 @@
         </div>
 
         @if ($cameraUrl)
-            <div
-                class="col-span-1 lg:col-span-2 bg-white dark:bg-gray-900 rounded-xl shadow p-4 border border-gray-200 dark:border-gray-700">
+            <div class="bg-white dark:bg-gray-900 rounded-xl shadow p-4 border border-gray-200 dark:border-gray-700">
                 <h3 class="text-lg font-semibold mb-2 dark:text-white">📹 Live Feed</h3>
                 <div class="aspect-video bg-black rounded overflow-hidden flex items-center justify-center relative">
                     <div class="absolute top-2 right-2 flex items-center gap-1">

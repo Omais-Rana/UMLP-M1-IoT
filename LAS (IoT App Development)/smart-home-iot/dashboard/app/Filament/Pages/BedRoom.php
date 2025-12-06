@@ -4,12 +4,12 @@ namespace App\Filament\Pages;
 
 use BackedEnum;
 
-class LivingRoom extends BaseRoomPage
+class BedRoom extends BaseRoomPage
 {
     // Sidebar Config
     protected static string|\UnitEnum|null $navigationGroup = 'Rooms';
-    protected static ?string $navigationLabel = 'Living Room';
-    protected static ?int $navigationSort = 1;
+    protected static ?string $navigationLabel = 'Bed Room';
+    protected static ?int $navigationSort = 3;
 
     // Room Specifics
     protected function getGrafanaPanelId(): int
