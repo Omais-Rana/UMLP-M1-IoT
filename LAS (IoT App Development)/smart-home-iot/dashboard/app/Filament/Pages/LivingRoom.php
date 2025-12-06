@@ -18,6 +18,11 @@ class LivingRoom extends BaseRoomPage
         return 1; // The ID of your Gauge panel
     }
 
+    protected function getHumidityPanelId(): int
+    {
+        return 2; // REPLACE with your new Humidity Panel ID
+    }
+
     protected function getCameraUrl(): ?string
     {
         return 'https://media.giphy.com/media/L0HfI57n4ydAI/giphy.gif';

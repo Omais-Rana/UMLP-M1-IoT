@@ -14,6 +14,7 @@ abstract class BaseRoomPage extends Page
 
     // Abstract methods
     abstract protected function getGrafanaPanelId(): int;
+    abstract protected function getHumidityPanelId(): int;
     abstract protected function getCameraUrl(): ?string;
 
     public function getGrafanaUrl(): string
@@ -29,10 +30,17 @@ abstract class BaseRoomPage extends Page
         return "http://localhost:3000/d-solo/adbnc7l/smart-home-iot?orgId=1&panelId=1&theme=light&refresh=5s";
     }
 
+    public function getHumidityUrl(): string
+    {
+        $panelId = $this->getHumidityPanelId();
+        return "http://localhost:3000/d-solo/adbnc7l/smart-home-iot?orgId=1&panelId=2&theme=light&refresh=5s";
+    }
+
     protected function getViewData(): array
     {
         return [
             'grafanaUrl' => $this->getGrafanaUrl(),
+            'humidityUrl' => $this->getHumidityUrl(),
             'cameraUrl' => $this->getCameraUrl(),
         ];
     }
