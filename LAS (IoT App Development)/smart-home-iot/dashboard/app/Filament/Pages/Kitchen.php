@@ -24,8 +24,8 @@ class Kitchen extends BaseRoomPage
 
     protected function getCameraUrl(): ?string
     {
-        // 1. Use 'localhost' because the camera is on the same machine
-        // 2. Use '/live.mjpg' to match the specific endpoint we defined in FFmpeg
-        return 'http://localhost:8080/live.mjpg';
+        // REPLACE '192.168.1.XX' with the actual IP from your Serial Monitor.
+        // Keep the ':81/stream' part—that is the specific port for video.
+        return 'http://10.122.127.5:81/stream';
     }
 }

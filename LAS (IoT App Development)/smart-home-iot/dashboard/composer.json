@@ -9,7 +9,8 @@
         "php": "^8.2",
         "filament/filament": "^4.2",
         "laravel/framework": "^12.0",
-        "laravel/tinker": "^2.10.1"
+        "laravel/tinker": "^2.10.1",
+        "php-mqtt/client": "*"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
@@ -84,7 +85,12 @@
         "allow-plugins": {
             "pestphp/pest-plugin": true,
             "php-http/discovery": true
-        }
+        },
+        "audit": {
+    "ignore": [
+        "PKSA-yb9k-ykqx-p2zw"
+    ]
+}
     },
     "minimum-stability": "stable",
     "prefer-stable": true
