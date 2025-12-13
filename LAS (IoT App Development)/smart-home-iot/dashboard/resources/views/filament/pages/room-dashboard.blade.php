@@ -1,43 +1,65 @@
 <x-filament-panels::page>
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-        <div class="bg-white dark:bg-gray-900 rounded-xl shadow p-2 border border-gray-200 dark:border-gray-700">
-            <div class="flex justify-between items-center px-4 py-2 border-b dark:border-gray-700">
-                <h3 class="text-lg font-semibold dark:text-white">🌡️ Temperature</h3>
-                <span class="text-xs font-mono text-gray-500">Live</span>
+    <div class="space-y-6">
+        <!-- Temperature & Humidity Row -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div
+                style="background-color: white; border-radius: 12px; box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1); padding: 8px; border: 1px solid #e5e7eb;">
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid #e5e7eb;">
+                    <h3
+                        style="font-size: 18px; font-weight: 700; color: #111827; display: flex; align-items: center; gap: 8px;">
+                        <span style="font-size: 24px;">🌡️</span>
+                        <span>Temperature</span>
+                    </h3>
+                    <span
+                        style="font-size: 11px; font-family: monospace; color: #6b7280; background-color: #f3f4f6; padding: 4px 8px; border-radius: 6px; font-weight: 600;">LIVE</span>
+                </div>
+                <div style="width: 100%; height: 300px;">
+                    <iframe src="{{ $grafanaUrl }}" width="100%" height="100%" frameborder="0">
+                    </iframe>
+                </div>
             </div>
-            <div class="w-full h-[300px]">
-                <iframe src="{{ $grafanaUrl }}" width="100%" height="100%" frameborder="0">
-                </iframe>
+
+            <div
+                style="background-color: white; border-radius: 12px; box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1); padding: 8px; border: 1px solid #e5e7eb;">
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid #e5e7eb;">
+                    <h3
+                        style="font-size: 18px; font-weight: 700; color: #111827; display: flex; align-items: center; gap: 8px;">
+                        <span style="font-size: 24px;">💧</span>
+                        <span>Humidity</span>
+                    </h3>
+                    <span
+                        style="font-size: 11px; font-family: monospace; color: #6b7280; background-color: #f3f4f6; padding: 4px 8px; border-radius: 6px; font-weight: 600;">LIVE</span>
+                </div>
+                <div style="width: 100%; height: 300px;">
+                    <iframe src="{{ $humidityUrl }}" width="100%" height="100%" frameborder="0">
+                    </iframe>
+                </div>
             </div>
         </div>
 
-        <div class="bg-white dark:bg-gray-900 rounded-xl shadow p-2 border border-gray-200 dark:border-gray-700">
-            <div class="flex justify-between items-center px-4 py-2 border-b dark:border-gray-700">
-                <h3 class="text-lg font-semibold dark:text-white">💧 Humidity</h3>
-                <span class="text-xs font-mono text-gray-500">Live</span>
-            </div>
-            <div class="w-full h-[300px]">
-                <iframe src="{{ $humidityUrl }}" width="100%" height="100%" frameborder="0">
-                </iframe>
-            </div>
-        </div>
-
+        <!-- Camera Feed -->
         @if ($cameraUrl)
             <div
-                class="col-span-1 lg:col-span-2 bg-white dark:bg-gray-900 rounded-xl shadow p-4 border border-gray-200 dark:border-gray-700">
-                <h3 class="text-lg font-semibold mb-2 dark:text-white">📹 Live Feed</h3>
-                <div class="aspect-video bg-black rounded overflow-hidden flex items-center justify-center relative">
-                    <div class="absolute top-2 right-2 flex items-center gap-1">
-                        <div class="w-2 h-2 bg-red-600 rounded-full animate-pulse"></div>
-                        <span class="text-xs text-white font-bold">LIVE</span>
+                style="background-color: white; border-radius: 12px; box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1); padding: 16px; border: 1px solid #e5e7eb;">
+                <h3
+                    style="font-size: 18px; font-weight: 700; color: #111827; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 24px;">📹</span>
+                    <span>Camera Feed</span>
+                </h3>
+                <div
+                    style="aspect-ratio: 16/9; background-color: black; border-radius: 8px; overflow: hidden; display: flex; align-items: center; justify-content: center; position: relative;">
+                    <div
+                        style="position: absolute; top: 8px; right: 8px; display: flex; align-items: center; gap: 4px; z-index: 10;">
+                        <div
+                            style="width: 8px; height: 8px; background-color: #dc2626; border-radius: 50%; animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;">
+                        </div>
+                        <span style="font-size: 12px; color: white; font-weight: 700;">LIVE</span>
                     </div>
-
-                    <img src="{{ $cameraUrl }}" class="h-full w-full object-cover" style="transform: rotate(0deg);">
-
+                    <img src="{{ $cameraUrl }}" style="height: 100%; width: 100%; object-fit: cover;">
                 </div>
             </div>
         @endif
-
     </div>
 </x-filament-panels::page>

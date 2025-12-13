@@ -27,13 +27,13 @@ abstract class BaseRoomPage extends Page
         // 3. We add '&refresh=5s' (to force auto-update)
         // 4. We change 'panelId' to use the integer directly (removing "panel-")
 
-        return "http://localhost:3000/d-solo/adbnc7l/smart-home-iot?orgId=1&panelId=1&theme=light&refresh=5s";
+        return "http://localhost:3000/d-solo/adbnc7l/smart-home-iot?orgId=1&panelId=1&refresh=5s";
     }
 
     public function getHumidityUrl(): string
     {
         $panelId = $this->getHumidityPanelId();
-        return "http://localhost:3000/d-solo/adbnc7l/smart-home-iot?orgId=1&panelId=2&theme=light&refresh=5s";
+        return "http://localhost:3000/d-solo/adbnc7l/smart-home-iot?orgId=1&panelId=2&refresh=5s";
     }
 
     protected function getViewData(): array
