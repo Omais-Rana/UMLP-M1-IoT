@@ -11,6 +11,13 @@ class Kitchen extends BaseRoomPage
     protected static ?string $navigationLabel = 'Kitchen';
     protected static ?int $navigationSort = 4;
 
+    protected function getHeaderWidgets(): array
+    {
+        return [
+            \App\Filament\Widgets\RoomControls::class,
+        ];
+    }
+
     // Room Specifics
     protected function getGrafanaPanelId(): int
     {

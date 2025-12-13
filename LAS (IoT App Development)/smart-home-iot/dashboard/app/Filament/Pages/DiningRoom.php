@@ -11,6 +11,13 @@ class DiningRoom extends BaseRoomPage
     protected static ?string $navigationLabel = 'Dining Room';
     protected static ?int $navigationSort = 2;
 
+    protected function getHeaderWidgets(): array
+    {
+        return [
+            \App\Filament\Widgets\RoomControls::class,
+        ];
+    }
+
     // Room Specifics
     protected function getGrafanaPanelId(): int
     {

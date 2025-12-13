@@ -15,6 +15,7 @@ class LivingRoom extends BaseRoomPage
     {
         return [
             \App\Filament\Widgets\RoomControls::class,
+            \App\Filament\Widgets\DoorStatus::class,
         ];
     }
 

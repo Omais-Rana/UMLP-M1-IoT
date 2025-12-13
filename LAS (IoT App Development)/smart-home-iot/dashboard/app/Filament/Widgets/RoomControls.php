@@ -3,7 +3,6 @@
 namespace App\Filament\Widgets;
 
 use Filament\Widgets\Widget;
-use PhpMqtt\Client\Facades\MQTT; // If you setup facades, or standard connection below
 
 class RoomControls extends Widget
 {

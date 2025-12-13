@@ -11,6 +11,13 @@ class BedRoom extends BaseRoomPage
     protected static ?string $navigationLabel = 'Bed Room';
     protected static ?int $navigationSort = 3;
 
+    protected function getHeaderWidgets(): array
+    {
+        return [
+            \App\Filament\Widgets\RoomControls::class,
+        ];
+    }
+
     // Room Specifics
     protected function getGrafanaPanelId(): int
     {
