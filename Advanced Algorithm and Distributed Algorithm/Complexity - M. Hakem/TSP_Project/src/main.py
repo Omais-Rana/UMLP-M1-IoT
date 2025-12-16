@@ -96,31 +96,94 @@ def main():
     print_matrix(example_distance_matrix)
     
     from tsp_algorithms import nearest_neighbor, brute_force_tsp, naive_dijkstra_tsp
+    import time
     
     # 1. Nearest Neighbor
     print("1. Algo: Nearest Neighbor")
+    start_time = time.perf_counter()
     nn_tour, nn_dist = nearest_neighbor(example_distance_matrix)
+    end_time = time.perf_counter()
+    nn_time_ms = (end_time - start_time) * 1000
+    
     nn_labels = [chr(65 + i) for i in nn_tour]
     print(f"   Tour: {' -> '.join(nn_labels)}")
     print(f"   Dist: {nn_dist}")
+    print(f"   Time: {nn_time_ms:.4f} ms")
+    print(f"   Avg Time/City: {nn_time_ms/10:.4f} ms")
 
     # 2. Naive Dijkstra Strategy (The "Bad" one)
     print("\n2. Algo: Naive Dijkstra Strategy (Sort by distance from A)")
+    start_time = time.perf_counter()
     dij_tour, dij_dist = naive_dijkstra_tsp(example_distance_matrix)
+    end_time = time.perf_counter()
+    dij_time_ms = (end_time - start_time) * 1000
+    
     dij_labels = [chr(65 + i) for i in dij_tour]
     print(f"   Tour: {' -> '.join(dij_labels)}")
     print(f"   Dist: {dij_dist}")
+    print(f"   Time: {dij_time_ms:.4f} ms")
+    print(f"   Avg Time/City: {dij_time_ms/10:.4f} ms")
 
     # 3. Brute Force (Exact)
     print("\n3. Algo: Brute Force (Exact Solution)")
+    start_time = time.perf_counter()
     bf_tour, bf_dist = brute_force_tsp(example_distance_matrix)
+    end_time = time.perf_counter()
+    bf_time_ms = (end_time - start_time) * 1000
+    
     bf_labels = [chr(65 + i) for i in bf_tour]
     print(f"   Tour: {' -> '.join(bf_labels)}")
     print(f"   Dist: {bf_dist}")
+    print(f"   Time: {bf_time_ms:.4f} ms")
+    print(f"   Avg Time/City: {bf_time_ms/10:.4f} ms")
     
     print("\n--- Comparison ---")
     print(f"Nearest Neighbor Error vs Optimal: {nn_dist - bf_dist}")
     print(f"Naive Dijkstra Error vs Optimal:   {dij_dist - bf_dist}")
+    
+    run_complexity_analysis()
+
+def generate_random_symmetric_matrix_local(n):
+    import random
+    matrix = [[0]*n for _ in range(n)]
+    for i in range(n):
+        for j in range(i+1, n):
+            w = random.randint(10, 100)
+            matrix[i][j] = w
+            matrix[j][i] = w
+    return matrix
+
+def run_complexity_analysis():
+    print("\n========================================")
+    print("COMPLEXITY GROWTH ANALYSIS (Time vs N)")
+    print("========================================")
+    print(f"{'N':<5} | {'NN (ms)':<12} | {'Dijkstra (ms)':<15} | {'BruteForce (ms)':<15}")
+    print("-" * 55)
+    
+    from tsp_algorithms import nearest_neighbor, brute_force_tsp, naive_dijkstra_tsp
+    import time
+    
+    # We test sizes 3 to 10
+    for n in range(3, 11):
+        matrix = generate_random_symmetric_matrix_local(n)
+        
+        # NN
+        start = time.perf_counter()
+        nearest_neighbor(matrix)
+        t_nn = (time.perf_counter() - start) * 1000
+        
+        # Dijkstra
+        start = time.perf_counter()
+        naive_dijkstra_tsp(matrix)
+        t_dij = (time.perf_counter() - start) * 1000
+        
+        # Brute Force
+        start = time.perf_counter()
+        brute_force_tsp(matrix)
+        t_bf = (time.perf_counter() - start) * 1000
+        
+        print(f"{n:<5} | {t_nn:<12.4f} | {t_dij:<15.4f} | {t_bf:<15.4f}")
+
 
 if __name__ == "__main__":
     main()

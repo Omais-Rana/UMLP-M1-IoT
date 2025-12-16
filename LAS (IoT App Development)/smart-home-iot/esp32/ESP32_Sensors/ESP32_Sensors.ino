@@ -15,13 +15,19 @@ const char* mqtt_server = "10.122.127.244";
 const int mqtt_port = 1883;
 
 // Topics
-const char* topic_sensor = "home/livingroom/sensor"; // Sending Data
-const char* topic_light  = "home/livingroom/light";  // Receiving Commands <--- NEW
+const char* topic_sensor = "home/livingroom/sensor"; // Sends Data
+const char* topic_light  = "home/livingroom/light";  // Manual Dashboard Switch
+const char* topic_ac     = "home/livingroom/ac";     // Auto AC Control  <--- NEW
+const char* topic_humid  = "home/livingroom/humid";  // Auto Mold Alert  <--- NEW
 
 // Hardware Settings
-#define DHTPIN 19      // KEEPING YOUR WORKING PIN 19
+#define DHTPIN 19       
 #define DHTTYPE DHT11 
-#define LED_PIN 2      // Built-in LED (Blue) <--- NEW
+
+// LED Pin Definitions
+#define LED_MAIN_PIN 2  // Built-in LED (Manual Control)
+#define LED_AC_PIN   21  // External LED 1 (Temp Automation) <--- NEW
+#define LED_MOLD_PIN 18  // External LED 2 (Humid Automation) <--- NEW
 
 // ==========================================
 // 2. OBJECTS & VARIABLES
@@ -35,29 +41,41 @@ unsigned long lastMsg = 0;
 const long interval = 5000;
 
 // ==========================================
-// 3. NEW: CALLBACK FUNCTION (Listens for Commands)
+// 3. CALLBACK FUNCTION (The Brains)
 // ==========================================
 void callback(char* topic, byte* message, unsigned int length) {
-  Serial.print("Message arrived on topic: ");
-  Serial.print(topic);
-  Serial.print(". Message: ");
-  
   String messageTemp;
   for (int i = 0; i < length; i++) {
-    Serial.print((char)message[i]);
     messageTemp += (char)message[i];
   }
-  Serial.println();
-
-  // If the message is for the light, turn it ON or OFF
+  
+  // LOGIC 1: Manual Light (Dashboard) -> Built-in LED
   if (String(topic) == topic_light) {
     if(messageTemp == "on"){
-      Serial.println("Turn LED ON");
-      digitalWrite(LED_PIN, HIGH);
+      digitalWrite(LED_MAIN_PIN, HIGH);
     }
     else if(messageTemp == "off"){
-      Serial.println("Turn LED OFF");
-      digitalWrite(LED_PIN, LOW);
+      digitalWrite(LED_MAIN_PIN, LOW);
+    }
+  }
+
+  // LOGIC 2: Auto AC (Node-RED) -> External LED on Pin 4
+  if (String(topic) == topic_ac) {
+    if(messageTemp == "on"){
+      digitalWrite(LED_AC_PIN, HIGH);
+    }
+    else if(messageTemp == "off"){
+      digitalWrite(LED_AC_PIN, LOW);
+    }
+  }
+
+  // LOGIC 3: Mold Alert (Node-RED) -> External LED on Pin 5
+  if (String(topic) == topic_humid) {
+    if(messageTemp == "on"){
+      digitalWrite(LED_MOLD_PIN, HIGH);
+    }
+    else if(messageTemp == "off"){
+      digitalWrite(LED_MOLD_PIN, LOW);
     }
   }
 }
@@ -68,7 +86,6 @@ void callback(char* topic, byte* message, unsigned int length) {
 
 void setup_wifi() {
   delay(10);
-  Serial.println();
   Serial.print("Connecting to WiFi: ");
   Serial.println(ssid);
 
@@ -79,10 +96,7 @@ void setup_wifi() {
     delay(500);
     Serial.print(".");
   }
-
   Serial.println("\nWiFi connected!");
-  Serial.print("IP address: ");
-  Serial.println(WiFi.localIP());
 }
 
 void reconnect() {
@@ -90,12 +104,15 @@ void reconnect() {
     Serial.print("Attempting MQTT connection...");
     if (client.connect("ESP32_LivingRoom")) { 
       Serial.println("connected!");
-      // *** SUBSCRIBE TO LIGHT TOPIC ***
+      
+      // *** SUBSCRIBE TO ALL 3 TOPICS ***
       client.subscribe(topic_light); 
+      client.subscribe(topic_ac); 
+      client.subscribe(topic_humid); 
+      
     } else {
       Serial.print("failed, rc=");
       Serial.print(client.state());
-      Serial.println(" - try again in 5s");
       delay(5000);
     }
   }
@@ -108,14 +125,16 @@ void reconnect() {
 void setup() {
   Serial.begin(115200);
   
-  pinMode(LED_PIN, OUTPUT); // Configure LED pin <--- NEW
+  // Configure ALL LED pins
+  pinMode(LED_MAIN_PIN, OUTPUT);
+  pinMode(LED_AC_PIN, OUTPUT);
+  pinMode(LED_MOLD_PIN, OUTPUT);
   
   dht.begin();
-  Serial.println("DHT Sensor Started");
   
   setup_wifi();
   client.setServer(mqtt_server, mqtt_port);
-  client.setCallback(callback); // Register the listener <--- NEW
+  client.setCallback(callback); 
 }
 
 // ==========================================
@@ -126,30 +145,29 @@ void loop() {
   if (!client.connected()) {
     reconnect();
   }
-  client.loop(); // Checks for incoming MQTT messages
+  client.loop(); 
 
   unsigned long now = millis();
   if (now - lastMsg > interval) {
     lastMsg = now;
 
-    // --- REAL SENSOR READING ---
+    // Read Sensors
     float humidity = dht.readHumidity();
     float temp = dht.readTemperature(); 
 
-    // Debug print
     if (isnan(humidity) || isnan(temp)) {
       Serial.println("Failed to read from DHT sensor!");
       return; 
     }
 
-    // --- CREATE JSON PAYLOAD ---
+    // JSON Payload
     String payload = "{\"temp\":";
     payload += String(temp, 2);
     payload += ",\"humidity\":";
     payload += String(humidity, 2);
     payload += "}";
 
-    // --- PUBLISH ---
+    // Publish
     Serial.print("Publishing: ");
     Serial.println(payload);
 

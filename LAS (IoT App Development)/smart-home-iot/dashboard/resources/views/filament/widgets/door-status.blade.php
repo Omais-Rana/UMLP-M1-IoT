@@ -24,7 +24,7 @@
 
             <button wire:click="toggleDoor"
                 style="padding: 8px 16px; font-size: 14px; font-weight: 600; color: white; border: none; border-radius: 8px; cursor: pointer; background-color: {{ $isOpen ? '#dc2626' : '#16a34a' }};">
-                {{ $isOpen ? 'OPEN' : 'CLOSED' }}
+                {{ $isOpen ? 'CLOSE' : 'OPEN' }}
             </button>
         </div>
     </x-filament::section>
