@@ -90,6 +90,38 @@ Default configuration:
 
 Ensure your MQTT broker is running and accessible at these coordinates, or update the code to match your setup.
 
+### Email Notifications
+
+To enable email notifications (e.g., for door open alerts), you must configure the mail settings in your `.env` file.
+
+Example configuration for SMTP (e.g., Mailtrap, Gmail, or a custom SMTP server):
+
+```env
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.mailtrap.io
+MAIL_PORT=2525
+MAIL_USERNAME=your_username
+MAIL_PASSWORD=your_password
+MAIL_ENCRYPTION=tls
+MAIL_FROM_ADDRESS="hello@example.com"
+MAIL_FROM_NAME="${APP_NAME}"
+```
+
+### Dashboard Customization
+
+#### Grafana Panels
+
+The Grafana panel URLs are currently hardcoded in `app/Filament/Pages/BaseRoomPage.php`.
+Update the `getGrafanaUrl()` and `getHumidityUrl()` methods with your specific Grafana dashboard URL, UID, and Panel IDs.
+
+#### Camera Feeds (Arducam)
+
+Camera stream URLs are defined in each room's specific page class.
+For example, to update the Living Room camera:
+
+1. Open `app/Filament/Pages/LivingRoom.php`.
+2. Update the `getCameraUrl()` method with your camera's IP address and stream path (e.g., `http://192.168.1.X:81/stream`).
+
 ## Usage
 
 1.  **Start the development server**
