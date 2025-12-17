@@ -17,6 +17,7 @@ A comprehensive IoT dashboard built with [Laravel](https://laravel.com) and [Fil
 -   **Frontend**: Blade, TailwindCSS, Vite
 -   **IoT Protocols**: MQTT (via `php-mqtt/client`)
 -   **Data Storage**: MySQL/SQLite (Application Data), InfluxDB (Sensor Data - _Dependency included_)
+-   **Development Environment**: Laravel Herd
 
 ## Prerequisites
 
