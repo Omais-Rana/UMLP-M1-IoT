@@ -1,0 +1,261 @@
+[
+    {
+        "id": "f6f2187d.f17ca8",
+        "type": "tab",
+        "label": "Flow 1",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "61099359c4b3c221",
+        "type": "mqtt-broker",
+        "name": "mosquitto",
+        "broker": "mosquitto",
+        "port": 1883,
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": 4,
+        "keepalive": 60,
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthRetain": "false",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closeRetain": "false",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willRetain": "false",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "5d514ca4c1897705",
+        "type": "influxdb",
+        "hostname": "influxdb",
+        "port": 8086,
+        "protocol": "http",
+        "database": "iot_data",
+        "name": "influxdb",
+        "usetls": false,
+        "tls": "",
+        "influxdbVersion": "1.x",
+        "url": "http://localhost:8086",
+        "timeout": 10,
+        "rejectUnauthorized": true
+    },
+    {
+        "id": "3cc11d24.ff01a2",
+        "type": "comment",
+        "z": "f6f2187d.f17ca8",
+        "name": "WARNING: please check you have started this container with a volume that is mounted to /data\\n otherwise any flow changes are lost when you redeploy or upgrade the container\\n (e.g. upgrade to a more recent node-red docker image).\\n  If you are using named volumes you can ignore this warning.\\n Double click or see info side panel to learn how to start Node-RED in Docker to save your work",
+        "info": "\nTo start docker with a bind mount volume (-v option), for example:\n\n```\ndocker run -it -p 1880:1880 -v /home/user/node_red_data:/data --name mynodered nodered/node-red\n```\n\nwhere `/home/user/node_red_data` is a directory on your host machine where you want to store your flows.\n\nIf you do not do this then you can experiment and redploy flows, but if you restart or upgrade the container the flows will be disconnected and lost. \n\nThey will still exist in a hidden data volume, which can be recovered using standard docker techniques, but that is much more complex than just starting with a named volume as described above.",
+        "x": 350,
+        "y": 80,
+        "wires": []
+    },
+    {
+        "id": "db74f5eee52891a3",
+        "type": "mqtt in",
+        "z": "f6f2187d.f17ca8",
+        "name": "Temp & Humid",
+        "topic": "home/+/sensor",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "61099359c4b3c221",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 140,
+        "y": 340,
+        "wires": [
+            [
+                "d74a6d05dfe92019"
+            ]
+        ]
+    },
+    {
+        "id": "d74a6d05dfe92019",
+        "type": "function",
+        "z": "f6f2187d.f17ca8",
+        "name": "function 2",
+        "func": "var parts = msg.topic.split(\"/\");\nvar roomName = parts[1];\n\nvar data = msg.payload;\nif (typeof data === 'string') {\n    data = JSON.parse(data);\n}\n\nmsg.payload = [\n    {  \n        temperature: parseFloat(data.temp),\n        humidity: parseFloat(data.humidity),\n    },\n    {  \n        room: roomName,\n        device: \"esp32\"\n    }\n];\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 320,
+        "y": 340,
+        "wires": [
+            [
+                "7a7021c06cee6338",
+                "e2797c8157e478c4"
+            ]
+        ]
+    },
+    {
+        "id": "7a7021c06cee6338",
+        "type": "influxdb out",
+        "z": "f6f2187d.f17ca8",
+        "influxdb": "5d514ca4c1897705",
+        "name": "influxdb",
+        "measurement": "environment",
+        "precision": "",
+        "retentionPolicy": "",
+        "database": "database",
+        "precisionV18FluxV20": "ms",
+        "retentionPolicyV18Flux": "",
+        "org": "organisation",
+        "bucket": "bucket",
+        "x": 500,
+        "y": 340,
+        "wires": []
+    },
+    {
+        "id": "e2797c8157e478c4",
+        "type": "debug",
+        "z": "f6f2187d.f17ca8",
+        "name": "debug 1",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 500,
+        "y": 420,
+        "wires": []
+    },
+    {
+        "id": "ac_input_node",
+        "type": "mqtt in",
+        "z": "f6f2187d.f17ca8",
+        "name": "Sensor Input (AC)",
+        "topic": "home/+/sensor",
+        "qos": "0",
+        "datatype": "json",
+        "broker": "61099359c4b3c221",
+        "nl": false,
+        "rap": false,
+        "inputs": 0,
+        "x": 150,
+        "y": 560,
+        "wires": [
+            [
+                "ac_logic_node"
+            ]
+        ]
+    },
+    {
+        "id": "ac_logic_node",
+        "type": "function",
+        "z": "f6f2187d.f17ca8",
+        "name": "Check Temp > 27°C",
+        "func": "var temp = msg.payload.temp;\nvar command = \"off\";\n\nif (temp > 27) {\n    command = \"on\";\n}\n\n// Only send if state changes\nvar last = context.get('lastAC') || \"\";\nif (command !== last) {\n    context.set('lastAC', command);\n    msg.payload = command;\n    return msg;\n}\nreturn null;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 400,
+        "y": 560,
+        "wires": [
+            [
+                "ac_output_node"
+            ]
+        ]
+    },
+    {
+        "id": "ac_output_node",
+        "type": "mqtt out",
+        "z": "f6f2187d.f17ca8",
+        "name": "Trigger AC LED",
+        "topic": "home/livingroom/ac",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "61099359c4b3c221",
+        "x": 650,
+        "y": 560,
+        "wires": []
+    },
+    {
+        "id": "mold_input_node",
+        "type": "mqtt in",
+        "z": "f6f2187d.f17ca8",
+        "name": "Sensor Input (Mold)",
+        "topic": "home/+/sensor",
+        "qos": "0",
+        "datatype": "json",
+        "broker": "61099359c4b3c221",
+        "nl": false,
+        "rap": false,
+        "inputs": 0,
+        "x": 150,
+        "y": 660,
+        "wires": [
+            [
+                "mold_logic_node"
+            ]
+        ]
+    },
+    {
+        "id": "mold_logic_node",
+        "type": "function",
+        "z": "f6f2187d.f17ca8",
+        "name": "Check Humidity > 40%",
+        "func": "var humid = msg.payload.humidity;\nvar command = \"off\";\n\nif (humid > 40) {\n    command = \"on\";\n}\n\n// Only send if state changes\nvar last = context.get('lastMold') || \"\";\nif (command !== last) {\n    context.set('lastMold', command);\n    msg.payload = command;\n    return msg;\n}\nreturn null;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 400,
+        "y": 660,
+        "wires": [
+            [
+                "mold_output_node"
+            ]
+        ]
+    },
+    {
+        "id": "mold_output_node",
+        "type": "mqtt out",
+        "z": "f6f2187d.f17ca8",
+        "name": "Trigger Mold LED",
+        "topic": "home/livingroom/humid",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "61099359c4b3c221",
+        "x": 650,
+        "y": 660,
+        "wires": []
+    },
+    {
+        "id": "d1ac3a6a8ee88d26",
+        "type": "global-config",
+        "env": [],
+        "modules": {
+            "node-red-contrib-influxdb": "0.7.0"
+        }
+    }
+]
