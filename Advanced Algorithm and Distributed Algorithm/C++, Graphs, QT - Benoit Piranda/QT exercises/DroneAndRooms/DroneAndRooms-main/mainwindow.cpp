@@ -14,8 +14,8 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    // load initial simple case
-    loadJson("../../json/simple.json");
+    loadJson("../../json/creed.json");
+    //loadJson("../../json/simple.json");
     //loadJson("../../json/arcane.json");
 }
 

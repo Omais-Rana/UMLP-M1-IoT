@@ -131,7 +131,7 @@
     <div id="start-screen" class="overlay-screen">
         <h1 class="text-6xl ui-font text-white mb-2 tracking-tighter">TACTICAL <span class="text-amber-500">LINK</span>
         </h1>
-        <p class="text-gray-400 mb-8 font-mono text-sm">IoT GYROSCOPIC TARGETING SYSTEM</p>
+        <p class="text-gray-400 mb-8 font-mono text-sm">IoT SHOOTER</p>
 
         <div class="flex flex-col gap-4 items-center w-64">
             <input type="text" id="player-name-input" class="input-cyber w-full uppercase"

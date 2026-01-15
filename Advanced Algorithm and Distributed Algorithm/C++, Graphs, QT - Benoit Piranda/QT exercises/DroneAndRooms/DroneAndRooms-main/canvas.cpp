@@ -7,7 +7,8 @@ Canvas::Canvas(QWidget *parent) : QWidget{parent} {
     windowSize={1,1};
     windowScale={1.0,1.0};
     droneIconSize=64;
-    droneImg.load("../../media/drone.png");
+    droneImg.load("../../media/creed.png");
+    //droneImg.load("../../media/drone.png");
 }
 
 void Canvas::paintEvent(QPaintEvent *) {
