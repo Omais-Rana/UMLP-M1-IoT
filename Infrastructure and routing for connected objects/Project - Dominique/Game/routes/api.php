@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Events\ControllerDataEvent;
+use App\Http\Controllers\ScoreController;
 
 /*
 |--------------------------------------------------------------------------
@@ -34,3 +35,7 @@ Route::post('/controller-data', function (Request $request) {
     // 3. Return a quick success response so the Python script doesn't hang
     return response()->json(['status' => 'received']);
 });
+
+// Game Score Routes
+Route::get('/scores', [ScoreController::class, 'index']);
+Route::post('/scores', [ScoreController::class, 'store']);
