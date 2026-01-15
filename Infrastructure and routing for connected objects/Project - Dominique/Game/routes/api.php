@@ -25,7 +25,7 @@ Route::get('/user', function (Request $request) {
  */
 Route::post('/controller-data', function (Request $request) {
     // 1. Grab only the specific keys we need from the JSON packet
-    $data = $request->only(['P', 'Y', 'JX', 'JY', 'B']);
+    $data = $request->only(['P', 'Y', 'JX', 'JY', 'F', 'C']);
 
     // 2. Broadcast the event immediately
     // "new ControllerDataEvent($data)" triggers the Reverb broadcast
@@ -33,13 +33,4 @@ Route::post('/controller-data', function (Request $request) {
 
     // 3. Return a quick success response so the Python script doesn't hang
     return response()->json(['status' => 'received']);
-});
-
-/**
- * Haptic Feedback Route (Optional)
- * The Browser calls this when a shot is fired.
- */
-Route::post('/haptics/fire', function () {
-    // In the future, this would send a command back to the ESP32 gateway
-    return response()->json(['status' => 'vibrate_command_sent']);
 });

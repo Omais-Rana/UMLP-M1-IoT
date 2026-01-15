@@ -15,6 +15,9 @@ def main():
         print(f"Connected to ESP32 on {SERIAL_PORT}")
         print("Bridge Running... (Buffer clearing enabled)")
         
+        # Use a Session to reuse TCP connection (Keep-Alive)
+        session = requests.Session()
+
         while True:
             # 1. OPTIMIZATION: Check if data is waiting
             if ser.in_waiting > 0:
@@ -43,7 +46,8 @@ def main():
                                 data[key] = float(val) if '.' in val else int(val)
                         
                         # 4. Send to Laravel (Timeout prevents hanging)
-                        requests.post(LARAVEL_URL, json=data, timeout=0.2)
+                        # Use session.post instead of requests.post
+                        session.post(LARAVEL_URL, json=data, timeout=0.2)
                 
                 except Exception as e:
                     # Ignore occasional parsing/network errors to keep stream alive

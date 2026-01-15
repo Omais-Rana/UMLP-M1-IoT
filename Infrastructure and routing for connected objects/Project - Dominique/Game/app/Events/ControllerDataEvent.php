@@ -14,19 +14,16 @@ class ControllerDataEvent implements ShouldBroadcastNow
 
     /**
      * The controller data packet.
-     * Contains P, Y, JX, JY, B
+     * Contains GX, GY, GZ (gyro rates), JX, JY (joystick), F (fire), R (recenter)
      */
     public $data;
 
     public function __construct(array $data)
     {
-        // $data example: ['P' => 10.5, 'Y' => -5.2, 'JX' => 1800, 'JY' => 1400, 'B' => 0]
+        // $data example: ['GX' => 10.5, 'GY' => -5.2, 'GZ' => 0.1, 'JX' => 1800, 'JY' => 1400, 'F' => 0, 'R' => 0]
         $this->data = $data;
     }
 
-    /**
-     * Broadcast on a public channel.
-     */
     public function broadcastOn(): array
     {
         return [
@@ -34,9 +31,6 @@ class ControllerDataEvent implements ShouldBroadcastNow
         ];
     }
 
-    /**
-     * The event name to listen for in the frontend via Laravel Echo.
-     */
     public function broadcastAs(): string
     {
         return 'data.received';

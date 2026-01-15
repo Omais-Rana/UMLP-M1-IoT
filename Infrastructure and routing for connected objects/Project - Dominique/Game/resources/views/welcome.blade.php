@@ -131,24 +131,16 @@
         let pitchOffset = 0;
         let isCalibrated = false;
 
-        // Lowered deadzone for instant response (was 500)
-        const JOY_DEADZONE = 250;
+        const JOY_DEADZONE = 500;
         const MAX_SPEED = 0.25;
 
         // --- LOW LATENCY SMOOTHING CONFIG ---
-        // History buffer: Reduced to 2 for minimal lag, but enough to kill spikes
         const HISTORY_SIZE = 2;
         let pHistory = [];
         let yHistory = [];
-
-        // Weights: Heavily favor the NEWEST data (0.7)
         const WEIGHTS = [0.3, 0.7];
-
-        // Anti-Drift Gates
         const DRIFT_GATE_P = 0.02;
         const DRIFT_GATE_Y = 0.1;
-
-        // Render Interpolation: Increased to 0.25 for snappy response
         const LERP_FACTOR = 0.25;
 
         /**
@@ -156,8 +148,15 @@
          */
         let scene, camera, renderer, raycaster, gunContainer, muzzleLight;
         let targets = [];
+
+        // Collision Arrays
+        let obstacles = [];
+        let obstacleBoxes = [];
+        let playerBox = new THREE.Box3();
+
         let score = 0;
-        let lastB = 0;
+        let lastF = 0;
+        let lastC = 0; // Last Recenter State
 
         // --- SMOOTHING STATE VARIABLES ---
         let targetPitch = 0;
@@ -171,7 +170,6 @@
 
         function initScene() {
             scene = new THREE.Scene();
-            // Realistic Sky Color (Overcast/Dusty)
             scene.background = new THREE.Color(0x8899a6);
             scene.fog = new THREE.Fog(0x8899a6, 10, 60);
 
@@ -194,7 +192,6 @@
             // -- LIGHTING --
             scene.add(new THREE.AmbientLight(0xffffff, 0.4));
 
-            // Sun Light
             const sunLight = new THREE.DirectionalLight(0xfffaed, 1.2);
             sunLight.position.set(50, 100, 50);
             sunLight.castShadow = true;
@@ -202,7 +199,6 @@
             sunLight.shadow.mapSize.height = 2048;
             scene.add(sunLight);
 
-            // Muzzle Flash (Warm Orange)
             muzzleLight = new THREE.PointLight(0xffaa33, 0, 8);
             muzzleLight.position.set(0.3, -0.2, -1.5);
             camera.add(muzzleLight);
@@ -217,10 +213,9 @@
         }
 
         function createEnvironment() {
-            // Ground (Dirt)
             const planeGeo = new THREE.PlaneGeometry(200, 200);
             const planeMat = new THREE.MeshStandardMaterial({
-                color: 0x5d5b50, // Muddy Brown/Grey
+                color: 0x5d5b50,
                 roughness: 1.0,
                 metalness: 0.0
             });
@@ -229,7 +224,6 @@
             floor.receiveShadow = true;
             scene.add(floor);
 
-            // Obstacles
             const boxGeo = new THREE.BoxGeometry(1, 1, 1);
             const concreteMat = new THREE.MeshStandardMaterial({
                 color: 0x888888,
@@ -250,14 +244,18 @@
                 mesh.position.set((Math.random() - 0.5) * 80, sY / 2, (Math.random() - 0.5) * 80);
                 mesh.castShadow = true;
                 mesh.receiveShadow = true;
+
+                mesh.updateMatrixWorld();
+                const box = new THREE.Box3().setFromObject(mesh);
                 scene.add(mesh);
+                obstacles.push(mesh);
+                obstacleBoxes.push(box);
             }
         }
 
         function createGunModel() {
             gunContainer = new THREE.Group();
 
-            // Materials
             const matGunmetal = new THREE.MeshStandardMaterial({
                 color: 0x222222,
                 roughness: 0.4,
@@ -273,30 +271,19 @@
                 metalness: 0.8
             });
 
-            // 1. Receiver
             const receiver = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.12, 0.4), matGunmetal);
-
-            // 2. Stock
             const stock = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.14, 0.35), matWood);
             stock.position.set(0, -0.05, 0.35);
-
-            // 3. Barrel
             const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.6), matSteel);
             barrel.rotation.x = Math.PI / 2;
             barrel.position.set(0, 0.03, -0.4);
-
-            // 4. Handguard
             const handguard = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.07, 0.3), matWood);
             handguard.position.set(0, 0, -0.3);
-
-            // 5. Mag
             const mag = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.25, 0.08), matGunmetal);
             mag.rotation.x = 0.3;
             mag.position.set(0, -0.15, -0.05);
-
-            // 6. Sight
             const sight = new THREE.Mesh(new THREE.BoxGeometry(0.01, 0.04, 0.01), matSteel);
-            sight.position.set(0, 0.05, -0.68);
+            sight.position.set(0, 0.06, -0.68);
 
             gunContainer.add(receiver, stock, barrel, handguard, mag, sight);
             gunContainer.position.set(0.25, -0.2, -0.4);
@@ -306,7 +293,6 @@
         function spawnEnemies(count) {
             const geo = new THREE.CylinderGeometry(0.4, 0.4, 0.1, 16);
             geo.rotateX(Math.PI / 2);
-
             const matRed = new THREE.MeshStandardMaterial({
                 color: 0xcc0000
             });
@@ -324,18 +310,18 @@
 
                 targetGroup.add(ring1, ring2, ring3);
                 targetGroup.position.set((Math.random() - 0.5) * 60, 1.5 + Math.random() * 2, (Math.random() - 0.5) * 60);
+
                 targetGroup.userData = {
+                    isTarget: true,
                     floatSpeed: 0.01 + Math.random() * 0.02,
                     floatOffset: Math.random() * Math.PI * 2
                 };
+
                 targets.push(targetGroup);
                 scene.add(targetGroup);
             }
         }
 
-        /**
-         * 3. IOT DATA PROCESSING
-         */
         function handleIoTData(payload) {
             let data = payload;
             if (data.data) {
@@ -349,7 +335,10 @@
             const hasPitch = data.P !== undefined;
             const hasYaw = data.Y !== undefined;
             const hasJoy = (data.JX !== undefined && data.JY !== undefined);
-            const hasBtn = data.B !== undefined;
+
+            // New Buttons
+            const hasRecenter = data.C !== undefined;
+            const hasFire = data.F !== undefined;
 
             // --- 1. One-Time Calibration (On Connect) ---
             if (!isCalibrated && hasJoy && hasYaw) {
@@ -358,7 +347,6 @@
                 yawOffset = Number(data.Y);
                 pitchOffset = Number(data.P);
 
-                // Init History Buffers
                 pHistory = Array(HISTORY_SIZE).fill(Number(data.P));
                 yHistory = Array(HISTORY_SIZE).fill(Number(data.Y));
 
@@ -369,7 +357,6 @@
                 console.log("Calibrated. Yaw Offset:", yawOffset);
             }
 
-            // Update UI Status
             const indicator = document.getElementById('status-indicator');
             const statusText = document.getElementById('connection-text');
             if (!indicator.classList.contains('bg-green-500')) {
@@ -378,14 +365,13 @@
                 statusText.className = 'text-[10px] uppercase font-bold text-green-500';
             }
 
-            // --- 2. UPDATE TARGETS (Low Latency Moving Average) ---
+            // --- 2. UPDATE TARGETS (Weighted Moving Average) ---
 
             if (hasPitch) {
                 const rawP = Number(data.P);
                 pHistory.push(rawP);
                 if (pHistory.length > HISTORY_SIZE) pHistory.shift();
 
-                // Weighted Average (Favors new data)
                 let weightedSum = 0;
                 let weightTotal = 0;
                 for (let i = 0; i < pHistory.length; i++) {
@@ -424,6 +410,7 @@
             }
 
             // --- 3. MOVEMENT (Joystick) ---
+            // --- 3. MOVEMENT (Joystick) ---
             if (hasJoy) {
                 const JX = Number(data.JX);
                 const JY = Number(data.JY);
@@ -447,7 +434,7 @@
                     // Linear Curve for instant response (was Quadratic)
                     const finalSpeed = speedRatio * MAX_SPEED;
 
-                    // INVERTED Joystick X here (Flip sign of normX)
+                    // INVERTED Joystick X here (Added negative sign)
                     targetMoveX = -normX * finalSpeed;
                     targetMoveZ = -normY * finalSpeed;
 
@@ -461,13 +448,32 @@
                 }
             }
 
-            // --- 4. Button ---
-            if (hasBtn) {
-                const B = Number(data.B);
-                if (B === 1 && lastB === 0) {
+            // --- 4. BUTTONS ---
+
+            // Recenter (C)
+            if (hasRecenter) {
+                const C = Number(data.C);
+                if (C === 1 && lastC === 0) {
+                    // Update offsets to match current raw values
+                    if (data.P !== undefined) pitchOffset = Number(data.P);
+                    if (data.Y !== undefined) yawOffset = Number(data.Y);
+
+                    // Prevent jump by resetting history
+                    pHistory.fill(pitchOffset);
+                    yHistory.fill(yawOffset);
+
+                    document.getElementById('tel-raw').innerText = "SYSTEM: RECALIBRATED";
+                }
+                lastC = C;
+            }
+
+            // Fire (F)
+            if (hasFire) {
+                const F = Number(data.F);
+                if (F === 1 && lastF === 0) {
                     triggerFire();
                 }
-                lastB = B;
+                lastF = F;
             }
         }
 
@@ -486,23 +492,37 @@
                 gunContainer.position.z -= 0.15;
                 gunContainer.rotation.x -= 0.1;
                 muzzleLight.intensity = 0.0;
-
                 document.getElementById('crosshair').classList.remove('firing');
             }, 80);
 
             raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
-            const hits = raycaster.intersectObjects(targets, true);
+            const allIntersectables = [...targets, ...obstacles];
+            const hits = raycaster.intersectObjects(allIntersectables, true);
 
             if (hits.length > 0) {
-                let targetHit = hits[0].object;
-                while (targetHit.parent && targetHit.parent.type !== 'Scene') {
-                    targetHit = targetHit.parent;
+                let hitObj = hits[0].object;
+                let rootObj = hitObj;
+                while (rootObj.parent && rootObj.parent.type !== 'Scene') {
+                    if (rootObj.userData.isTarget) break;
+                    rootObj = rootObj.parent;
                 }
-                scene.remove(targetHit);
-                targets = targets.filter(t => t !== targetHit);
-                score += 1;
-                document.getElementById('score-val').innerText = score.toString().padStart(3, '0');
-                if (targets.length < 3) spawnEnemies(5);
+
+                if (rootObj.userData.isTarget) {
+                    scene.remove(rootObj);
+                    targets = targets.filter(t => t !== rootObj);
+                    score += 1;
+                    document.getElementById('score-val').innerText = score.toString().padStart(3, '0');
+                    if (targets.length < 3) spawnEnemies(5);
+                } else {
+                    const sparkGeo = new THREE.BoxGeometry(0.1, 0.1, 0.1);
+                    const sparkMat = new THREE.MeshBasicMaterial({
+                        color: 0xffff00
+                    });
+                    const spark = new THREE.Mesh(sparkGeo, sparkMat);
+                    spark.position.copy(hits[0].point);
+                    scene.add(spark);
+                    setTimeout(() => scene.remove(spark), 200);
+                }
             }
         }
 
@@ -540,8 +560,26 @@
             playerGroup.rotation.y += (targetYaw - playerGroup.rotation.y) * LERP_FACTOR;
 
             if (targetMoveX !== 0 || targetMoveZ !== 0) {
+                const startPos = playerGroup.position.clone();
                 playerGroup.translateX(targetMoveX);
                 playerGroup.translateZ(targetMoveZ);
+
+                const min = new THREE.Vector3(playerGroup.position.x - 0.5, playerGroup.position.y - 1, playerGroup.position
+                    .z - 0.5);
+                const max = new THREE.Vector3(playerGroup.position.x + 0.5, playerGroup.position.y + 1, playerGroup.position
+                    .z + 0.5);
+                playerBox.set(min, max);
+
+                let collided = false;
+                for (let box of obstacleBoxes) {
+                    if (playerBox.intersectsBox(box)) {
+                        collided = true;
+                        break;
+                    }
+                }
+                if (collided) {
+                    playerGroup.position.copy(startPos);
+                }
             }
 
             const time = Date.now() * 0.001;
