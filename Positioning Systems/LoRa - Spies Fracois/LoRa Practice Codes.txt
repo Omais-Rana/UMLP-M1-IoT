@@ -1,0 +1,308 @@
+---LoRa Receive---
+
+
+#include <SPI.h> // The LoRa module includes an interface with SPI bus
+#include <RH_RF95.h> // Radiohead Library for LoRa communications
+#define RFM95_CS 8
+#define RFM95_RST 4
+#define RFM95_INT 3
+RH_RF95 rf95(RFM95_CS, RFM95_INT);
+uint8_t buf[255];
+uint8_t len = sizeof(buf);
+void setup() {
+ Serial.begin(115200);
+ rf95.init();
+ rf95.setModemConfig(RH_RF95::Bw125Cr45Sf128);
+// Bandwidth=125kHz Code rate 4/5 Spreading factor =2^7
+ rf95.setFrequency(868.1); // 868.1, 868.2 or 868.3
+}
+void loop() {
+ if (rf95.waitAvailableTimeout(4000)) { // Wait for a packet for 4 seconds
+ if (rf95.recv(buf, &len)) {
+ Serial.println((char*)buf);
+ Serial.print("RSSI: RANA");
+ Serial.println(rf95.lastRssi(), DEC);
+ Serial.print("SNR: 18");
+ Serial.println(rf95.lastSNR(), DEC);
+ }
+ }
+ else Serial.println("No reception");
+}
+
+
+---LoRa Transmit---
+
+
+#include <SPI.h>
+#include <RH_RF95.h>
+#define RFM95_CS 8
+#define RFM95_RST 4
+#define RFM95_INT 3
+
+// Singleton instance of the radio driver
+RH_RF95 rf95(RFM95_CS, RFM95_INT);
+
+// Global counter for the practice message
+int i = 0; 
+uint8_t buf[255]; // Buffer for sending data
+
+void setup() {
+  Serial.begin(115200);
+  
+  // 1. Initialize LED_BUILTIN to visualize transmission time
+  pinMode(LED_BUILTIN, OUTPUT);
+  digitalWrite(LED_BUILTIN, LOW);
+
+  // 2. Initialize LoRa Module
+  if (!rf95.init()) {
+    Serial.println("LoRa init failed");
+    while (1);
+  }
+
+  // 3. Configure LoRa parameters (Must match the Receiver!)
+  // Bw = 125 kHz, Cr = 4/5, Sf = 128chips/symbol, CRC on
+  rf95.setModemConfig(RH_RF95::Bw125Cr45Sf128);
+  
+  // Frequency
+  rf95.setFrequency(868.1); 
+
+  // 4. Set Transmitter Power
+  // +13dBm is a safe default for these modules
+  rf95.setTxPower(13, false); 
+}
+
+void loop() {
+  // --- Prepare the message ---
+  String message = "RANA Practice #";
+  message += i;
+  
+  // Convert String to char array for RadioHead
+  // We add +1 for the null terminator at the end of the string
+  message.toCharArray((char*)buf, message.length() + 1);
+  
+  Serial.print("Sending: ");
+  Serial.println(message);
+  
+  digitalWrite(LED_BUILTIN, HIGH);   // LED ON: Transmission starts
+  
+  // Send the data (length + 1 to include the null character)
+  rf95.send((uint8_t *)buf, message.length() + 1);
+  
+  // Wait for the transmission to complete
+  rf95.waitPacketSent(); 
+  
+  digitalWrite(LED_BUILTIN, LOW);    // LED OFF: Transmission finished
+  
+  i++;
+  
+  delay(2000);
+}
+
+
+---Pseudo-distance---
+
+
+#include <SPI.h>
+#include <RH_RF95.h>
+#include <math.h> // Required for pow() function
+
+// Pin definitions for Adafruit Feather M0 Express
+#define RFM95_CS 8
+#define RFM95_RST 4
+#define RFM95_INT 3
+
+RH_RF95 rf95(RFM95_CS, RFM95_INT);
+
+// --- FRIIS / DISTANCE CONSTANTS ---
+// 'A': The expected RSSI at 1 meter distance. 
+// For +13dBm Tx power at 868MHz, this is often around -30 to -40 dBm.
+const float measure_rssi_at_1m = -30.0; 
+
+// 'n': Path Loss Exponent. 
+// 2.0 = Free Space (Theoretical Friis). 
+// 3.0 to 4.0 = Typical Indoors (Walls, reflections).
+const float path_loss_exponent = 2.0; 
+
+void setup() {
+  Serial.begin(115200);
+  
+  // Initialize LoRa
+  if (!rf95.init()) {
+    Serial.println("LoRa init failed");
+    while (1);
+  }
+  
+  // Configuration must match the Beacons!
+  rf95.setModemConfig(RH_RF95::Bw125Cr45Sf128);
+  rf95.setFrequency(868.1); 
+}
+
+void loop() {
+  uint8_t buf[255];
+  uint8_t len = sizeof(buf);
+
+  // Wait for a packet
+  if (rf95.waitAvailableTimeout(4000)) { 
+    if (rf95.recv(buf, &len)) {
+      
+      // 1. Get the RSSI of the received packet
+      int rssi = rf95.lastRssi();
+      
+      // 2. Calculate Distance using Log-Distance (Friis derived) formula
+      // Formula: distance = 10 ^ ((A - RSSI) / (10 * n))
+      float exponent = (measure_rssi_at_1m - rssi) / (10 * path_loss_exponent);
+      float distance = pow(10, exponent);
+
+      // 3. Parse the Beacon ID
+      // We assume the Beacon sends its ID as text in the message
+      buf[len] = 0; // Null-terminate string
+      String beaconID = (char*)buf;
+
+      // 4. Print formatted output
+      Serial.print("ID=");
+      Serial.print(beaconID);
+      Serial.print(", RSSI=");
+      Serial.print(rssi);
+      Serial.print("dBm, distance=");
+      Serial.print(distance, 1); // Print with 1 decimal place
+      Serial.println("m");
+    }
+  }
+}
+
+
+---Coordinates---
+
+
+#include <SPI.h>
+#include <RH_RF95.h>
+#include <math.h>
+
+// --- PIN DEFINITIONS FOR FEATHER M0 ---
+#define RFM95_CS 8
+#define RFM95_RST 4
+#define RFM95_INT 3
+
+RH_RF95 rf95(RFM95_CS, RFM95_INT);
+
+// --- CALIBRATION ---
+// RSSI at 1 meter (Adjust this if distances are wrong)
+const float A_reference_rssi = -55.0; // Adjusted based on your logs (-55 at close range)
+const float n_path_loss = 3.0;        // Path Loss Exponent (Classroom environment)
+
+// --- VARIABLES ---
+float d[3] = {0.0, 0.0, 0.0}; 
+float bx[3] = {0.0, 8.0, 0.0}; 
+float by[3] = {0.0, 0.0, 8.0}; 
+bool received[3] = {false, false, false}; 
+
+void setup() {
+  Serial.begin(115200);
+  // Wait for serial to be ready
+  while (!Serial) { delay(10); }
+
+  if (!rf95.init()) {
+    Serial.println("LoRa init failed");
+    while (1);
+  }
+  
+  rf95.setModemConfig(RH_RF95::Bw125Cr45Sf128);
+  rf95.setFrequency(868.1); 
+  
+  Serial.println("--- Setup Complete. Waiting for Beacons... ---");
+}
+
+void loop() {
+  uint8_t buf[255];
+  uint8_t len = sizeof(buf);
+
+  if (rf95.waitAvailableTimeout(1000)) { 
+    if (rf95.recv(buf, &len)) {
+      buf[len] = 0; 
+      
+      // --- 1. ROBUST PARSING (THE FIX) ---
+      // Message format: UE07,13,ID,X,Y
+      // We need to skip the first two commas to find the ID.
+      
+      char* ptr = (char*)buf;
+      int commaCount = 0;
+      
+      // Advance pointer until we pass 2 commas
+      while (*ptr && commaCount < 2) {
+        if (*ptr == ',') commaCount++;
+        ptr++;
+      }
+      
+      // Now 'ptr' points specifically to "ID,X,Y" (e.g., "0,0,0")
+      int id = -1;
+      float rx_x = 0;
+      float rx_y = 0;
+      
+      // Scan the remaining string
+      int items = sscanf(ptr, "%d,%f,%f", &id, &rx_x, &rx_y);
+      
+      // --- 2. LOGIC ---
+      if (items >= 1 && id >= 0 && id <= 2) {
+        
+        // Update beacon coordinates if sent
+        if (items == 3) {
+          bx[id] = rx_x;
+          by[id] = rx_y;
+        }
+
+        // Calculate Distance
+        float rssi = (float)rf95.lastRssi();
+        float exponent = (A_reference_rssi - rssi) / (10.0 * n_path_loss);
+        float distance = pow(10.0, exponent);
+        
+        // Clamp huge distances
+        if (distance > 15.0) distance = 15.0; 
+        
+        d[id] = distance;
+        received[id] = true;
+
+        Serial.print("Beacon "); Serial.print(id);
+        Serial.print(" (RSSI "); Serial.print(rssi, 0);
+        Serial.print("): Dist="); Serial.print(distance); Serial.println("m");
+        
+        // Calculate Position if we have all 3
+        if (received[0] && received[1] && received[2]) {
+           calculatePosition();
+        }
+      } 
+    }
+  }
+}
+
+void calculatePosition() {
+  /* TRILATERATION
+     Uses the dynamic coordinates bx[] and by[] received from the beacons.
+  */
+  
+  float d0_sq = sq(d[0]);
+  float d1_sq = sq(d[1]);
+  float d2_sq = sq(d[2]);
+  
+  // Calculate X using Beacon 0 and Beacon 1
+  // Formula: x = (d0^2 - d1^2 + D^2) / 2D
+  float dist_01 = sqrt(sq(bx[1] - bx[0]) + sq(by[1] - by[0])); // Should be 8.0
+  if (dist_01 == 0) dist_01 = 8.0; // Safety
+  float x = (d0_sq - d1_sq + sq(dist_01)) / (2 * dist_01);
+  
+  // Calculate Y using Beacon 0 and Beacon 2
+  float dist_02 = sqrt(sq(bx[2] - bx[0]) + sq(by[2] - by[0])); // Should be 8.0
+  if (dist_02 == 0) dist_02 = 8.0; // Safety
+  float y = (d0_sq - d2_sq + sq(dist_02)) / (2 * dist_02);
+
+  // Bounds Check
+  if (x < 0) x = 0; if (x > 8) x = 8;
+  if (y < 0) y = 0; if (y > 8) y = 8;
+
+  Serial.println("-----------------------------");
+  Serial.print(">>> CALCULATED POS: X=");
+  Serial.print(x);
+  Serial.print(", Y=");
+  Serial.println(y);
+  Serial.println("-----------------------------");
+}
+
