@@ -49,4 +49,4 @@ It includes:
 
 - Machine Learning
   
-  - [Cguyeux](https://github.com/cguyeux/cours_ia) (Predictive and Generative AI)
+  - [Guyeux](https://github.com/cguyeux/cours_ia) (Predictive and Generative AI)
