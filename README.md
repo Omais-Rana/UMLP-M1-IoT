@@ -32,7 +32,7 @@ It includes:
 - LAS - IoT Application Development
 
   - Abdallah Makhoul (MiniIOT, a small project with Arduino/ESP32)
-  - Joseph Azhar (Smart-home-iot, a comprehensive IoT dashboard)
+  - [Joseph Azhar](https://github.com/josephazar/IOT-UMLP-2026/tree/main) (Smart-home-iot, a comprehensive IoT dashboard)
 
 - Mobile App Development
   
