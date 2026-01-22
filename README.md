@@ -38,3 +38,15 @@ It includes:
   
   - Android (Java by Spies Francois)
   - IOS (Swift by Laiymani David)
+  
+- Radio Network
+  
+  - Mabed Mohamed Hakim (LTE)
+
+- Positioning Systems
+  
+  - Spies Francois (LoRa)
+
+- Machine Learning
+  
+  - [Cguyeux](https://github.com/cguyeux/cours_ia) (Predictive and Generative AI)
