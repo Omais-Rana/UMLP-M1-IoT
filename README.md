@@ -33,7 +33,8 @@ It includes:
 
 - LAS - IoT Application Development
 
-  - [Mini Project](<https://github.com/Omais-Rana/UMLP-M1-IoT/tree/main/LAS%20(IoT%20App%20Development)/MiniIOT>) (A mini IoT project with Arduino)
+  - Mini Project (A mini IoT project with Arduino)
+  - Smart-home-iot (A comprehensive IoT dashboard)
 
 - Mobile App Development
   - Android (Java by Spies Francois)
