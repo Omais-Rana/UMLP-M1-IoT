@@ -17,7 +17,6 @@ It includes:
 - Advanced Algorithm and Distributed Algorithm
 
   - [Benoit Piranda](https://benoitpiranda.fr/#/education#advancedAlgorithms) (C++, QT Designer Tool, Graphs and Trees)
-
   - Deschinkel Karine (Routing Algorithms, Graphs and Trees)
 
 - Embedded Systems
@@ -28,13 +27,26 @@ It includes:
 - Infrastructure and Routing for Connected Objects
 
   - [Dedu Eugen](https://dedu.fr/teaching/iot/) (Communication Protocols & Patterns, Linux)
-
   - [Mabed Mohamed Hakim](https://padlet.com/Hephaistos/iot-network-conception-dcazhkge1iqdkp0w) (Cisco Packet Tracer Labs)
 
 - LAS - IoT Application Development
 
-  - [Mini Project](<https://github.com/Omais-Rana/UMLP-M1-IoT/tree/main/LAS%20(IoT%20App%20Development)/MiniIOT>) (A mini IoT project with Arduino)
+  - Abdallah Makhoul (MiniIOT, a small project with Arduino/ESP32)
+  - [Joseph Azhar](https://github.com/josephazar/IOT-UMLP-2026/tree/main) (Smart-home-iot, a comprehensive IoT dashboard)
 
 - Mobile App Development
+  
   - Android (Java by Spies Francois)
   - IOS (Swift by Laiymani David)
+  
+- Radio Network
+  
+  - Mabed Mohamed Hakim (LTE)
+
+- Positioning Systems
+  
+  - Spies Francois (LoRa)
+
+- Machine Learning
+  
+  - [Christophe Guyeux](https://github.com/cguyeux/cours_ia) (Predictive and Generative AI)
