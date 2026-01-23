@@ -1,6 +1,6 @@
 # UMLP – Master’s in Internet of Things (M1)
 
-This repository contains the coursework, assignments, and projects completed during the Master’s in Internet of Things (IoT) program at Marie and Louis Pasteur University (2025).
+This repository contains the coursework, assignments, and projects completed during the Master’s in Internet of Things (IoT) program at Marie and Louis Pasteur University (2025 - 2027).
 
 It includes:
 
