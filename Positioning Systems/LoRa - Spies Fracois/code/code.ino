@@ -27,13 +27,45 @@ void setup() {
     while (1);
   }
   
-  // Configure LoRa
+  // Configure LoRa: Bw = 125 kHz, Cr = 4/5, Sf = 7
   rf95.setModemConfig(RH_RF95::Bw125Cr45Sf128);
   rf95.setFrequency(868.1); 
   rf95.setTxPower(23, false); 
   
   Serial.println("--- SYSTEM START ---");
-  Serial.println("(Bitrate test skipped for cleaner map output)");
+
+  // Theroretical bitrate
+  float bw = 125000.0;
+  float sf = 7.0;
+  float cr = 0.8; // 4/5
+  
+  // Formula: Rb = SF * (BW / 2^SF) * CR
+  float theoretical_bitrate = sf * (bw / pow(2, sf)) * cr;
+
+  // Time measurement
+  Serial.println("--- TEST: Sending 100 Bytes ---");
+  
+  uint8_t data[100];
+  for (int i=0; i<100; i++) data[i] = 'A'; // Dummy data
+  
+  unsigned long startTime = millis();
+  rf95.send(data, sizeof(data));
+  rf95.waitPacketSent(); 
+  unsigned long endTime = millis();
+  
+  float duration_ms = (float)(endTime - startTime);
+  float duration_sec = duration_ms / 1000.0;
+  
+  float effective_bitrate = 800.0 / duration_sec;
+
+  Serial.println("--- BITRATE VERIFICATION REPORT ---");
+  Serial.print("1. Payload Size:      "); Serial.println("100 bytes (800 bits)");
+  Serial.print("2. Measured Time:     "); Serial.print(duration_ms); Serial.println(" ms");
+  Serial.print("3. Theoretical Rate:  "); Serial.print(theoretical_bitrate); Serial.println(" bps");
+  Serial.print("4. Effective Rate:    "); Serial.print(effective_bitrate); Serial.println(" bps");
+  Serial.print("5. Efficiency:        "); Serial.print((effective_bitrate / theoretical_bitrate) * 100); Serial.println(" %");
+  Serial.println("-----------------------------------");
+  Serial.println("");
 }
 
 void loop() {
@@ -47,7 +79,7 @@ void loop() {
       char* ptr = (char*)buf;
       int commaCount = 0;
       
-      // Skip the first two commas
+      // Skip the first two commas (Prefix, GroupID)
       while (*ptr && commaCount < 2) {
         if (*ptr == ',') commaCount++;
         ptr++;
@@ -75,6 +107,9 @@ void loop() {
         d[id] = distance;
         received[id] = true;
 
+        Serial.print("Update Beacon "); Serial.print(id);
+        Serial.print(": Dist="); Serial.print(distance); Serial.println("m");
+        
         if (received[0] && received[1] && received[2]) {
            calculatePosition();
         }
@@ -101,50 +136,14 @@ void calculatePosition() {
   if (x < 0) x = 0; if (x > 8) x = 8;
   if (y < 0) y = 0; if (y > 8) y = 8;
 
-  // Print Data
-  Serial.println("\n-----------------------------");
+  Serial.println("-----------------------------");
   Serial.print("INPUTS: d0="); Serial.print(d[0]); 
   Serial.print("m | d1="); Serial.print(d[1]);
   Serial.print("m | d2="); Serial.print(d[2]); Serial.println("m");
-  Serial.print("POS: X="); Serial.print(x, 1); Serial.print(" Y="); Serial.println(y, 1);
   
-  // DRAW MAP
-  drawMap(x, y);
-  
+  Serial.print(">>> CALCULATED POS: X=");
+  Serial.print(x);
+  Serial.print(", Y=");
+  Serial.println(y);
   Serial.println("-----------------------------");
-}
-
-void drawMap(float userX, float userY) {
-  // Map Size: 8x8 meters
-  // Resolution: 1 character = 1 meter approx
-  
-  Serial.println("      (Y)");
-  Serial.println("      ^");
-  
-  // Loop from Y=8 down to Y=0 (Top to Bottom)
-  for (int y = 8; y >= 0; y--) {
-    Serial.print("  ");
-    Serial.print(y);
-    Serial.print(" | ");
-    
-    // Loop from X=0 to X=8 (Left to Right)
-    for (int x = 0; x <= 8; x++) {
-      
-      // Check if this grid point matches User Position (rounded)
-      if (round(userX) == x && round(userY) == y) {
-        Serial.print("X "); // The User
-      } 
-      // Check for Beacons
-      else if (x==0 && y==0) Serial.print("0 "); // Beacon 0
-      else if (x==8 && y==0) Serial.print("1 "); // Beacon 1
-      else if (x==0 && y==8) Serial.print("2 "); // Beacon 2
-      // Empty Space
-      else {
-        Serial.print(". ");
-      }
-    }
-    Serial.println();
-  }
-  Serial.println("    -------------------");
-  Serial.println("      0 1 2 3 4 5 6 7 8  (X)");
 }
