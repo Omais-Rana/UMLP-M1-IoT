@@ -1,22 +1,21 @@
 <?php
 
-$freq       = $_POST['frequency'] ?? 2600; // Default within 2550-2650
-$tx_power   = $_POST['power'] ?? 23;       // Default 23 dBm
-$distance   = $_POST['distance'] ?? 1.0;   // Default 1 km
-$ant_height = $_POST['height'] ?? 30;      // Default 30m
+$freq       = $_POST['frequency'] ?? 2600;
+$tx_power   = $_POST['power'] ?? 23;
+$distance   = $_POST['distance'] ?? 1.0;
+$ant_height = $_POST['height'] ?? 30;
 $env        = $_POST['environment'] ?? 'urban_dense';
 
 $results = null;
 $error = null;
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Inputs
     $f = floatval($_POST['frequency']);
     $p_tx = floatval($_POST['power']);
     $d = floatval($_POST['distance']);
     $h_b = floatval($_POST['height']);
     $env_type = $_POST['environment'];
-    $h_m = 1.5; // Standard sensor/mobile height
+    $h_m = 1.5;
 
     if ($f < 2550 || $f > 2650) {
         $error = "Frequency must be between 2550 and 2650 MHz.";
@@ -25,14 +24,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     } elseif ($d <= 0) {
         $error = "Distance must be greater than 0.";
     } else {
-        // --- COST-231 HATA ALGORITHM ---
-
-        // 1. Calculate a(h_m) correction factor for mobile height (1.5m)
-        // Formula for urban areas: a(hm) = (1.1*log(f) - 0.7)*hm - (1.56*log(f) - 0.8)
         $a_hm = (1.1 * log10($f) - 0.7) * $h_m - (1.56 * log10($f) - 0.8);
-
-        // 2. Calculate Basic Path Loss (Urban Base)
-        // L = 46.3 + 33.9log(f) - 13.82log(hb) - a(hm) + (44.9 - 6.55log(hb))log(d) + Cm
 
         $term1 = 46.3;
         $term2 = 33.9 * log10($f);
@@ -50,10 +42,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $path_loss_final = $path_loss_basic + $cm_val;
             $env_display = "Dense Urban (+3dB)";
         } else {
-            $correction = 2 * pow(log10($f / 28), 2) + 5.4;
-            $path_loss_final = $path_loss_basic - $correction;
-            $cm_val = -$correction; // For display purposes
-            $env_display = "Suburban (Low Density)";
+            $cm_val = 0;
+            $path_loss_final = $path_loss_basic + $cm_val;
+            $env_display = "Suburban (Standard)";
         }
 
         $rx_power = $p_tx - $path_loss_final;
@@ -77,7 +68,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lab 2: Uplink Simulator</title>
     <style>
-        /* Lab 2 Aesthetic: "The Matrix" / Industrial Terminal */
         body {
             background-color: #0d1117;
             /* Dark Terminal Background */
@@ -198,7 +188,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     <div class="terminal-window">
         <div class="header">
-            /// SYSTEM: LAB_02_UPLINK_SIM ///
+            SYSTEM: LAB_02_UPLINK_SIM
         </div>
 
         <div class="content">
@@ -245,38 +235,38 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             <?php if ($results): ?>
                 <div class="output-screen">
-                    <div style="text-align:center; margin-bottom:10px; border-bottom:1px solid #00ff41;">>> SIMULATION REPORT <<< /div>
+                    <div style="text-align:center; margin-bottom:10px; border-bottom:1px solid #00ff41;">>> SIMULATION REPORT </div>
 
-                            <div class="data-line">
-                                <span>MODEL USED:</span>
-                                <span class="value"><?php echo $results['raw_formula']; ?></span>
-                            </div>
-                            <div class="data-line">
-                                <span>ENVIRONMENT:</span>
-                                <span class="value"><?php echo $results['env_display']; ?></span>
-                            </div>
-                            <div class="data-line">
-                                <span>PATH LOSS:</span>
-                                <span class="value"><?php echo $results['loss']; ?> dB</span>
-                            </div>
-                            <div class="data-line">
-                                <span>TX POWER (Sensor):</span>
-                                <span class="value"><?php echo $results['p_tx']; ?> dBm</span>
-                            </div>
-
-                            <br>
-                            <div style="text-align: center; border: 1px solid #00ff41; padding: 10px;">
-                                RECEIVED POWER (Uplink):<br>
-                                <span style="font-size: 24px; font-weight: bold;"><?php echo $results['rx_power']; ?> dBm</span>
-                            </div>
+                    <div class="data-line">
+                        <span>MODEL USED:</span>
+                        <span class="value"><?php echo $results['raw_formula']; ?></span>
                     </div>
-                <?php endif; ?>
+                    <div class="data-line">
+                        <span>ENVIRONMENT:</span>
+                        <span class="value"><?php echo $results['env_display']; ?></span>
+                    </div>
+                    <div class="data-line">
+                        <span>PATH LOSS:</span>
+                        <span class="value"><?php echo $results['loss']; ?> dB</span>
+                    </div>
+                    <div class="data-line">
+                        <span>TX POWER (Sensor):</span>
+                        <span class="value"><?php echo $results['p_tx']; ?> dBm</span>
+                    </div>
 
-                <div class="footer">
-                    Module: Cost_Hata_v2.1 | Secure Connection
+                    <br>
+                    <div style="text-align: center; border: 1px solid #00ff41; padding: 10px;">
+                        RECEIVED POWER (Uplink):<br>
+                        <span style="font-size: 24px; font-weight: bold;"><?php echo $results['rx_power']; ?> dBm</span>
+                    </div>
                 </div>
-                </div>
+            <?php endif; ?>
+
+            <div class="footer">
+                Module: Cost_Hata_v2.1 | Secure Connection
+            </div>
         </div>
+    </div>
 
 </body>
 
