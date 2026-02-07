@@ -11,7 +11,6 @@ $speed_map = [
     'unclassified' => 40
 ];
 
-// Defaults (UMLP, Montbéliard, France)
 $lat = $_POST['lat'] ?? 47.4953101;
 $lon = $_POST['lon'] ?? 6.8044496;
 $radius = $_POST['radius'] ?? 300;
@@ -21,27 +20,42 @@ $error = null;
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
-    $overpassUrl = "https://overpass-api.de/api/interpreter";
-    $query = "[out:json][timeout:25];
+    // list of mirrors. If one fails, we try the next.
+    $mirrors = [
+        "https://overpass-api.de/api/interpreter",
+        "https://overpass.kumi.systems/api/interpreter",
+        "https://overpass.osm.ch/api/interpreter"
+    ];
+
+    $query = "[out:json][timeout:30];
     (
       way[\"highway\"](around:$radius,$lat,$lon);
       way[\"building\"](around:$radius,$lat,$lon);
     );
     out tags;";
 
-    $options = [
-        'http' => [
-            'method'  => 'POST',
-            'header'  => "User-Agent: 5G_Lab_Student_Project/1.0\r\n",
-            'content' => "data=" . urlencode($query)
-        ]
-    ];
+    $response = false;
 
-    $context = stream_context_create($options);
-    $response = @file_get_contents($overpassUrl, false, $context);
+    foreach ($mirrors as $url) {
+        $options = [
+            'http' => [
+                'method'  => 'POST',
+                'header'  => "User-Agent: 5G_Lab_Project/2.0\r\nContent-type: application/x-www-form-urlencoded\r\n",
+                'content' => "data=" . urlencode($query),
+                'timeout' => 15
+            ]
+        ];
+
+        $context = stream_context_create($options);
+        $response = @file_get_contents($url, false, $context);
+
+        if ($response !== FALSE) {
+            break;
+        }
+    }
 
     if ($response === FALSE) {
-        $error = "Connection Lost: Cannot reach Overpass Server.";
+        $error = "Satellite Signal Lost: All Overpass servers are currently busy. Please wait 10 seconds and try again.";
     } else {
         $data = json_decode($response, true);
 
@@ -66,26 +80,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         if ($avg_speed > 90) {
             $scs = "120 kHz";
-            $mobility_desc = "Elytra Flight";
         } elseif ($avg_speed > 50) {
             $scs = "60 kHz";
-            $mobility_desc = "Minecart Speed";
         } else {
             $scs = "30 kHz";
-            $mobility_desc = "Walking Speed";
         }
 
         if ($building_count > 150) {
             $band = "24 GHz";
-            $scenario = "City"; // Dense
+            $scenario = "City";
             $cp_mode = "Normal";
         } elseif ($building_count > 50) {
             $band = "3.5 GHz";
-            $scenario = "Village"; // Moderate
+            $scenario = "Village";
             $cp_mode = "Normal";
         } else {
             $band = "700 MHz";
-            $scenario = "Wilderness"; // Sparse
+            $scenario = "Wilderness";
             $cp_mode = "Extended";
         }
 
@@ -97,7 +108,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             'band' => $band,
             'cp' => $cp_mode,
             'scenario' => $scenario,
-            'desc' => $mobility_desc
         ];
     }
 }
@@ -332,7 +342,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     </div>
                     <div style="flex: 0.8;">
                         <div class="input-group">
-                            <label>Radius</label>
+                            <label>Radius (m)</label>
                             <input type="number" name="radius" class="mc-input" value="<?php echo htmlspecialchars($radius); ?>">
                         </div>
                     </div>
@@ -351,7 +361,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     <div style="color: #404040; font-size: 1.5rem; margin-bottom: 5px;">Inventory:</div>
 
                     <div class="inventory-grid">
-                        <div class="slot" title="<?php echo $results['desc']; ?>">
+                        <div class="slot" title="">
                             <div class="slot-label">Speed</div>
                             <div class="slot-value"><?php echo $results['avg_speed']; ?></div>
                         </div>
@@ -395,29 +405,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </div>
 
     <script>
-        // Initialize Map
-        // We use PHP variables to set the center point
         var map = L.map('map').setView([<?php echo $lat; ?>, <?php echo $lon; ?>], 15);
 
-        // Add Tile Layer (OpenStreetMap)
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; OpenStreetMap contributors'
         }).addTo(map);
 
-        // Add Marker at Location
         L.marker([<?php echo $lat; ?>, <?php echo $lon; ?>]).addTo(map)
             .bindPopup("Selected Coordinates")
             .openPopup();
 
-        // Add Circle for Radius (Analysis Area)
         var circle = L.circle([<?php echo $lat; ?>, <?php echo $lon; ?>], {
-            color: '#ff0000', // Red outline
-            fillColor: '#f03', // Red fill
+            color: '#ff0000',
+            fillColor: '#f03',
             fillOpacity: 0.2,
-            radius: <?php echo $radius; ?> // Radius in meters
+            radius: <?php echo $radius; ?>
         }).addTo(map);
 
-        // Fit map bounds to show the whole circle
         map.fitBounds(circle.getBounds());
     </script>
 
