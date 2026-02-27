@@ -130,13 +130,13 @@ print("\nRows with NaN:")
 print(df[df.isna().any(axis=1)])
 
 # 4. Replace NaN with column mean
+# Create a clean copy by dropping NaNs FIRST
+df_clean = df.dropna()
+print(f"Shape after dropping NaNs: {df_clean.shape}")
+
+# THEN replace NaNs with column mean in the original df
 mean_val = df['PetalWidthCm'].mean()
 df['PetalWidthCm'] = df['PetalWidthCm'].fillna(mean_val)
-print(f"\nNaNs filled with mean: {mean_val:.2f}")
-
-# 5. Drop rows containing NaN (on a copy)
-df_clean = df.dropna() 
-
 
 # ==========================================
 # PART 5 - Aggregations and Groupby
@@ -284,13 +284,16 @@ print("\nCoefficient of Variation (SepalLength):")
 print(stats)
 
 # 3. Apply: "Typical" flower logic
-# We calculate bounds per species first to make checking faster
-means = df.groupby('Species')['SepalLengthCm'].transform('mean')
-stds = df.groupby('Species')['SepalLengthCm'].transform('std')
+# Calculate bounds for all numeric columns at once
+numeric_cols = ['SepalLengthCm', 'SepalWidthCm', 'PetalLengthCm', 'PetalWidthCm']
+means = df.groupby('Species')[numeric_cols].transform('mean')
+stds = df.groupby('Species')[numeric_cols].transform('std')
 
-# Create column "Typical"
-# Logic: True if SepalLength is within [mean - std, mean + std]
-df['Typical'] = df['SepalLengthCm'].between(means - stds, means + stds)
+# Create a boolean dataframe where True means the value is within bounds
+is_typical = (df[numeric_cols] >= (means - stds)) & (df[numeric_cols] <= (means + stds))
+
+# The flower is typical only if ALL numeric columns are True (axis=1 checks across the row)
+df['Typical'] = is_typical.all(axis=1)
 
 print("\nTypical vs Atypical count:")
 print(df['Typical'].value_counts())
