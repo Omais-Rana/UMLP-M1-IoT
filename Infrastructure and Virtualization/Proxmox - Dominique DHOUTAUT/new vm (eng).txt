@@ -1,0 +1,10 @@
+- new vm (eng)
+- web ui
+- no sub repo
+
+
+Stop Mode: The VM is completely shut down before the backup starts and is restarted once it finishes
+Suspend Mode: The VM is "paused" (hibernated) to disk, backed up, and then resumed.
+Snapshot Mode: The backup is performed while the VM is running
+
+A cluster needs to know which nodes are accessible/available and which ones arent. If you have 3 nodes and one node fails, both remaining nodes can still communicate with each other and "reach the conclusion" that node #3 is unavailable because both #1 and #2 cant talk to it. If the cluster was only 2 nodes and both nodes cant see each other then both nodes will consider the other node offline and take meassures accordingly.
