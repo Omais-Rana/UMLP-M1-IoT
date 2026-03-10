@@ -118,17 +118,18 @@
             ctx.fillStyle = '#999';
             ctx.font = '11px Arial';
             for (let i = 0; i <= gridSize; i++) {
-                const pos = (i * scale) + offsetX;
+                const posX = (i * scale) + offsetX;
+                const posY = (i * scale) + offsetY;
                 ctx.beginPath();
-                ctx.moveTo(pos, offsetY);
-                ctx.lineTo(pos, (gridSize * scale) + offsetY);
+                ctx.moveTo(posX, offsetY);
+                ctx.lineTo(posX, (gridSize * scale) + offsetY);
                 ctx.stroke();
-                ctx.fillText(i + "m", pos - 8, offsetY - 15);
+                ctx.fillText(i + "m", posX - 8, offsetY - 15);
                 ctx.beginPath();
-                ctx.moveTo(offsetX, pos);
-                ctx.lineTo((gridSize * scale) + offsetX, pos);
+                ctx.moveTo(offsetX, posY);
+                ctx.lineTo((gridSize * scale) + offsetX, posY);
                 ctx.stroke();
-                ctx.fillText(i + "m", offsetX - 30, pos + 4);
+                ctx.fillText(i + "m", offsetX - 30, posY + 4);
             }
 
             if (!result) return;
