@@ -52,6 +52,21 @@
 @section('content')
     <div class="controls">
         <h2>Indoor Positioning: N-Lateration (TD n°2)</h2>
+        <div
+            style="background: #eef2f5; padding: 15px; margin-top: 15px; margin-bottom: 15px; border-left: 4px solid var(--primary); text-align: left; font-size: 0.9em; border-radius: 4px;">
+            <strong>Initial Data (Emitters):</strong>
+            <ul style="margin-top: 5px; margin-bottom: 10px;">
+                @foreach ($emitters as $index => $emitter)
+                    <li>
+                        <strong>E<sub>{{ $index }}</sub>:</strong>
+                        (X: {{ $emitter->position->x }}m, Y: {{ $emitter->position->y }}m, Z: {{ $emitter->position->z }}m)
+                        | <strong>d<sub>{{ $index }}</sub></strong>: {{ $emitter->measuredDistance }}m
+                    </li>
+                @endforeach
+            </ul>
+            <strong>Mathematical Logic:</strong> Grid Search SAE (Sum of Absolute Errors).<br>
+            <strong>Cost Function:</strong> f(P) = &sum; | dist(P, E<sub>i</sub>) - d<sub>i</sub> |
+        </div>
         <p>
             <strong>Calculated Position (P̂):</strong>
             @if ($result)

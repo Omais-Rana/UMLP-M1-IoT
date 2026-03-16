@@ -4,6 +4,25 @@
     <h1>Indoor Positioning: Fingerprinting</h1>
 
     <div
+        style="background: #eef2f5; padding: 15px; margin-bottom: 20px; border-left: 4px solid #0984e3; text-align: left; font-size: 0.9em; border-radius: 4px;">
+        <strong>Initial Data (Radio Map Grid):</strong>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px; margin-bottom: 10px;">
+            @foreach ($grid as $row)
+                @foreach ($row as $cell)
+                    <div
+                        style="background: white; padding: 5px 10px; border: 1px solid #ddd; border-radius: 4px; text-align: center;">
+                        <strong>Center:</strong> ({{ $cell->x }}m, {{ $cell->y }}m)<br>
+                        <strong>RSSI:</strong> [{{ implode(', ', $cell->rssi) }}]
+                    </div>
+                @endforeach
+            @endforeach
+        </div>
+        <strong>Mathematical Logic:</strong> Weighted K-Nearest Neighbors (WKNN) and Barycentric Ponderation.<br>
+        <strong>Signal Distance:</strong> &radic;&sum; (RSSI<sub>obs</sub> - RSSI<sub>db</sub>)<sup>2</sup><br>
+        <strong>Result Vector:</strong> OM = c<sub>1</sub> &cdot; OK<sub>1</sub> + ... + c<sub>k</sub> &cdot; OK<sub>k</sub>
+    </div>
+
+    <div
         style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px; border-left: 5px solid #d63031; text-align: left;">
         <strong>TM Measured RSSI:</strong> [{{ implode(', ', $tmRssi) }}] <br>
         <strong>Estimated Position (P̂):</strong>
