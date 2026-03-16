@@ -7,21 +7,21 @@ class MarkovService
     public function buildTransitionMatrix(array $history): array
     {
         $nbStates = 9; // 3x3 Grid
-        $totalCol = $nbStates; // The totalizer column (nbC - 1 in your Java)
+        $totalCol = $nbStates;
 
-        // Initialize Matrix with count (nb) and probability (stat)
+        // Initialize Matrix
         $matrix = array_fill(0, $nbStates, array_fill(0, $nbStates + 1, (object)['nb' => 0, 'stat' => 0.0]));
 
-        // 1. Learning Phase: Increment transitions
+        // Increment transitions
         for ($i = 1; $i < count($history); $i++) {
             $prev = $history[$i - 1];
             $curr = $history[$i];
 
             $matrix[$prev][$curr]->nb += 1;
-            $matrix[$prev][$totalCol]->nb += 1; // Increment Row Total
+            $matrix[$prev][$totalCol]->nb += 1;
         }
 
-        // 2. Calculation Phase: Convert counts to probabilities
+        // Convert counts to probabilities
         for ($prev = 0; $prev < $nbStates; $prev++) {
             $rowTotal = $matrix[$prev][$totalCol]->nb;
             if ($rowTotal > 0) {

@@ -81,19 +81,24 @@ class PositioningController extends Controller
         // 1. Get current matrix from session or initialize a fresh one
         $matrix = session('markov_matrix', $this->initializeEmptyMatrix());
         $lastCell = session('last_cell_id');
+        $history = session('markov_history', []);
 
         // 2. If a move was made, update the matrix counts (nb) and stats
         if ($request->has('move_to')) {
             $currentCell = (int) $request->get('move_to');
 
+            // Add to history
+            $history[] = $currentCell;
+            session(['markov_history' => $history]);
+
             if ($lastCell !== null) {
                 // Logic from Appendix: MM[prev][curr].nb += 1
                 $matrix[$lastCell][$currentCell]->nb += 1;
-                $matrix[$lastCell][9]->nb += 1; // Totalizer Column
+                $matrix[$lastCell][6]->nb += 1; // Totalizer Column
 
                 // Calculate Probability: MM[prev][k].stat = nb / total
-                $total = $matrix[$lastCell][9]->nb;
-                for ($k = 0; $k < 9; $k++) {
+                $total = $matrix[$lastCell][6]->nb;
+                for ($k = 0; $k < 6; $k++) {
                     $matrix[$lastCell][$k]->stat = $matrix[$lastCell][$k]->nb / $total;
                 }
             }
@@ -102,7 +107,7 @@ class PositioningController extends Controller
             session(['markov_matrix' => $matrix]);
         }
 
-        return view('markov_map', compact('matrix'));
+        return view('markov_map', compact('matrix', 'history'));
     }
 
     /**
@@ -110,18 +115,18 @@ class PositioningController extends Controller
      */
     public function resetMarkov()
     {
-        session()->forget(['markov_matrix', 'last_cell_id']);
+        session()->forget(['markov_matrix', 'last_cell_id', 'markov_history']);
         return redirect()->route('markov')->with('status', 'Matrix Reset Successfully');
     }
 
     /**
-     * Helper to build the 9x10 structure (9 cells + 1 totalizer column).
+     * Helper to build the 6x7 structure (6 cells + 1 totalizer column).
      */
     private function initializeEmptyMatrix(): array
     {
         $matrix = [];
-        for ($i = 0; $i < 9; $i++) {
-            for ($j = 0; $j < 10; $j++) {
+        for ($i = 0; $i < 6; $i++) {
+            for ($j = 0; $j < 7; $j++) {
                 $matrix[$i][$j] = (object)['nb' => 0, 'stat' => 0.0];
             }
         }
