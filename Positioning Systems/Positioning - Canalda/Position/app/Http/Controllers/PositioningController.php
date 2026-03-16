@@ -4,22 +4,115 @@ namespace App\Http\Controllers;
 
 use App\Managers\NLaterationManager;
 use App\Factories\DatasetFactory;
+use App\Services\FingerprintService;
+use App\Models\Cellule;
 use Illuminate\View\View;
+use Illuminate\Http\Request;
 
 class PositioningController extends Controller
 {
     /**
-     * Handle the positioning request and return the view.
+     * Landing page with cards for both exercises.
      */
-    public function index(NLaterationManager $manager): View
+    public function dashboard(): View
     {
+        return view('dashboard');
+    }
+
+    /**
+     * TD n°2: N-Lateration (Geometric Approach)
+     * Renamed from index to lateration to match navbar routes.
+     */
+    public function lateration(NLaterationManager $manager): View
+    {
+        // Get the static dataset for the exercise
         $emitters = DatasetFactory::createTDDataset();
 
+        // Run the Grid Search minimization algorithm
         $result = $manager->solveStaticScenario();
 
         return view('positioning_map', [
             'emitters' => $emitters,
             'result' => $result
         ]);
+    }
+
+    /**
+     * TD n°3: Fingerprinting (Probabilistic Approach)
+     */
+    public function fingerprint(): View
+    {
+        // 1. Initialize the Tf grid (Radio Map) using the TD values
+        // Centers for i/j (0,1,2) in a 12x12m grid are (2m, 6m, 10m)
+        $grid = [
+            [new Cellule([-38, -27, -54, -13], 2, 2), new Cellule([-74, -62, -48, -33], 6, 2), new Cellule([-13, -28, -12, -40], 10, 2)],
+            [new Cellule([-34, -27, -38, -41], 2, 6), new Cellule([-64, -48, -72, -35], 6, 6), new Cellule([-45, -37, -20, -15], 10, 6)],
+            [new Cellule([-17, -50, -44, -33], 2, 10), new Cellule([-27, -28, -32, -45], 6, 10), new Cellule([-30, -20, -60, -40], 10, 10)],
+        ];
+
+        // 2. The Mobile Terminal measurement (The "Photography" of the spot)
+        $tmRssi = [-26, -42, -13, -46];
+
+        // 3. Compute result using Weighted K-Nearest Neighbors
+        $service = new FingerprintService();
+        $result = $service->compute($grid, $tmRssi, 4);
+
+        return view('fingerprint_map', [
+            'grid' => $grid,
+            'result' => $result,
+            'tmRssi' => $tmRssi
+        ]);
+    }
+
+    public function markov(Request $request): View
+    {
+        // 1. Get current matrix from session or initialize a fresh one
+        $matrix = session('markov_matrix', $this->initializeEmptyMatrix());
+        $lastCell = session('last_cell_id');
+
+        // 2. If a move was made, update the matrix counts (nb) and stats
+        if ($request->has('move_to')) {
+            $currentCell = (int) $request->get('move_to');
+
+            if ($lastCell !== null) {
+                // Logic from Appendix: MM[prev][curr].nb += 1
+                $matrix[$lastCell][$currentCell]->nb += 1;
+                $matrix[$lastCell][9]->nb += 1; // Totalizer Column
+
+                // Calculate Probability: MM[prev][k].stat = nb / total
+                $total = $matrix[$lastCell][9]->nb;
+                for ($k = 0; $k < 9; $k++) {
+                    $matrix[$lastCell][$k]->stat = $matrix[$lastCell][$k]->nb / $total;
+                }
+            }
+
+            session(['last_cell_id' => $currentCell]);
+            session(['markov_matrix' => $matrix]);
+        }
+
+        return view('markov_map', compact('matrix'));
+    }
+
+    /**
+     * Clears the learning progress.
+     */
+    public function resetMarkov()
+    {
+        session()->forget(['markov_matrix', 'last_cell_id']);
+        return redirect()->route('markov')->with('status', 'Matrix Reset Successfully');
+    }
+
+    /**
+     * Helper to build the 9x10 structure (9 cells + 1 totalizer column).
+     */
+    private function initializeEmptyMatrix(): array
+    {
+        $matrix = [];
+        for ($i = 0; $i < 9; $i++) {
+            for ($j = 0; $j < 10; $j++) {
+                $matrix[$i][$j] = (object)['nb' => 0, 'stat' => 0.0];
+            }
+        }
+        return $matrix;
     }
 }
