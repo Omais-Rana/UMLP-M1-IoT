@@ -192,10 +192,10 @@
         function init3D() {
             if (!result) return;
             const container = document.getElementById('container-3d');
-            
+
             // Clear prior canvases to prevent stack duplicates
             container.innerHTML = '';
-            
+
             const scene = new THREE.Scene();
             scene.background = new THREE.Color(0xffffff);
 
@@ -257,4 +257,3 @@
         init3D();
     </script>
 @endsection
-

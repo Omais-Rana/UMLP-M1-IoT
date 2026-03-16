@@ -127,8 +127,8 @@
                 <a href="{{ route('lateration') }}"
                     class="{{ request()->routeIs('lateration') ? 'active' : '' }}">N-Lateration &#9662;</a>
                 <div class="dropdown-content">
-                    <a href="{{ route('lateration', ['example' => 1]) }}">Example 1 (TD - 4 Emitters)</a>
-                    <a href="{{ route('lateration', ['example' => 3]) }}">Example 2 (3 Emitters)</a>
+                    <a href="{{ route('lateration', ['example' => 1]) }}">4 Emitters</a>
+                    <a href="{{ route('lateration', ['example' => 3]) }}">3 Emitters</a>
                 </div>
             </li>
 

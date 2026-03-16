@@ -19,7 +19,31 @@
         </div>
         <strong>Mathematical Logic:</strong> Weighted K-Nearest Neighbors (WKNN) and Barycentric Ponderation.<br>
         <strong>Signal Distance:</strong> &radic;&sum; (RSSI<sub>obs</sub> - RSSI<sub>db</sub>)<sup>2</sup><br>
-        <strong>Result Vector:</strong> OM = c<sub>1</sub> &cdot; OK<sub>1</sub> + ... + c<sub>k</sub> &cdot; OK<sub>k</sub>
+        <strong>Result Vector:</strong> OM = c<sub>1</sub> &middot; OK<sub>1</sub> + ... + c<sub>k</sub> &middot;
+        OK<sub>k</sub>
+    </div>
+
+    <!-- Configuration Tabs -->
+    <div style="margin-bottom: 20px; display: flex; justify-content: center; gap: 10px;">
+        <span style="align-self: center; font-weight: bold; margin-right: 10px;">K-Neighbors:</span>
+        <a href="?k=3"
+            style="padding: 8px 16px; border-radius: 4px; text-decoration: none; font-weight: bold; border: 1px solid #0984e3; 
+                  background-color: {{ request('k') == 3 ? '#0984e3' : 'transparent' }}; 
+                  color: {{ request('k') == 3 ? '#fff' : '#0984e3' }};">
+            k = 3
+        </a>
+        <a href="?k=4"
+            style="padding: 8px 16px; border-radius: 4px; text-decoration: none; font-weight: bold; border: 1px solid #0984e3; 
+                  background-color: {{ request('k', 4) == 4 ? '#0984e3' : 'transparent' }}; 
+                  color: {{ request('k', 4) == 4 ? '#fff' : '#0984e3' }};">
+            k = 4
+        </a>
+        <a href="?k=5"
+            style="padding: 8px 16px; border-radius: 4px; text-decoration: none; font-weight: bold; border: 1px solid #0984e3; 
+                  background-color: {{ request('k') == 5 ? '#0984e3' : 'transparent' }}; 
+                  color: {{ request('k') == 5 ? '#fff' : '#0984e3' }};">
+            k = 5
+        </a>
     </div>
 
     <div
@@ -28,6 +52,18 @@
         <strong>Estimated Position (P̂):</strong>
         <span style="color: #d63031; font-weight: bold;">X: {{ round($result->x, 2) }}m, Y:
             {{ round($result->y, 2) }}m</span>
+
+        <hr style="border: 0; border-top: 1px solid #ddd; margin: 15px 0;">
+        <strong>Best Ordered Cells (Top K Nearest Neighbors):</strong>
+        <div style="margin-top: 10px; font-size: 0.95em;">
+            @foreach ($neighbors as $index => $n)
+                <div style="margin-bottom: 5px;">
+                    <span style="display:inline-block; width: 60px; font-weight:bold;">Rank {{ $index + 1 }}:</span>
+                    Cell ({{ $n['cell']->x }}m, {{ $n['cell']->y }}m)
+                    &mdash; <span style="color: #0984e3;">Distance: {{ round($n['d'], 4) }}</span>
+                </div>
+            @endforeach
+        </div>
     </div>
 
     <canvas id="fingerprintCanvas" width="600" height="600"

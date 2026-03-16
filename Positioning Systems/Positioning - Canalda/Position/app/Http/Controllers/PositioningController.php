@@ -46,8 +46,11 @@ class PositioningController extends Controller
     /**
      * TD n°3: Fingerprinting (Probabilistic Approach)
      */
-    public function fingerprint(): View
+    public function fingerprint(Request $request): View
     {
+        // Get K from request, default to 4 (as in TD)
+        $k = (int) $request->query('k', 4);
+
         // 1. Initialize the Tf grid (Radio Map) using the TD values
         // Centers for i/j (0,1,2) in a 12x12m grid are (2m, 6m, 10m)
         $grid = [
@@ -61,12 +64,15 @@ class PositioningController extends Controller
 
         // 3. Compute result using Weighted K-Nearest Neighbors
         $service = new FingerprintService();
-        $result = $service->compute($grid, $tmRssi, 4);
+        $computed = $service->compute($grid, $tmRssi, $k);
 
         return view('fingerprint_map', [
             'grid' => $grid,
-            'result' => $result,
-            'tmRssi' => $tmRssi
+            'result' => $computed['position'],
+            'neighbors' => $computed['neighbors'],
+            'all_distances' => $computed['all_distances'],
+            'tmRssi' => $tmRssi,
+            'k' => $k
         ]);
     }
 

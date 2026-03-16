@@ -6,7 +6,7 @@ use App\Models\Position;
 
 class FingerprintService
 {
-    public function compute(array $grid, array $tmRssi, int $k = 4): Position
+    public function compute(array $grid, array $tmRssi, int $k = 4): array
     {
         $distances = [];
 
@@ -26,7 +26,11 @@ class FingerprintService
 
         // 3. Weighting Logic (d1 * alpha = d2 => c2 = (1/alpha) * c1)
         $d1 = $neighbors[0]['d'];
-        if ($d1 == 0) return new Position($neighbors[0]['cell']->x, $neighbors[0]['cell']->y, 0);
+        if ($d1 == 0) return [
+            'position' => new Position($neighbors[0]['cell']->x, $neighbors[0]['cell']->y, 0),
+            'neighbors' => $neighbors,
+            'all_distances' => $distances
+        ];
 
         $sumOfWeights = 0;
         $weights = [];
@@ -48,6 +52,10 @@ class FingerprintService
             $finalY += $normalizedWeight * $n['cell']->y;
         }
 
-        return new Position($finalX, $finalY, 0);
+        return [
+            'position' => new Position($finalX, $finalY, 0),
+            'neighbors' => $neighbors,
+            'all_distances' => $distances
+        ];
     }
 }
