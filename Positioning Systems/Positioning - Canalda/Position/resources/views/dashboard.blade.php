@@ -99,7 +99,7 @@
                     Focuses on geometric minimization of measurement residuals from multiple anchors.
                 </p>
             </div>
-            <a href="{{ route('lateration') }}" class="btn-open">Open 3D/2D Map</a>
+            <a href="{{ route('lateration') }}" class="btn-open">Open Exercise</a>
         </div>
 
         <div class="exercise-card">
@@ -111,7 +111,7 @@
                     Uses a weighted barycenter of the k-nearest cells to determine a precise location.
                 </p>
             </div>
-            <a href="{{ route('fingerprint') }}" class="btn-open">Open Radio Map</a>
+            <a href="{{ route('fingerprint') }}" class="btn-open">Open Exercise</a>
         </div>
 
         <div class="exercise-card">
@@ -123,7 +123,7 @@
                     Filters signal noise by predicting the most likely next state based on temporal dependencies.
                 </p>
             </div>
-            <a href="{{ route('markov') }}" class="btn-open">View Transition Matrix</a>
+            <a href="{{ route('markov') }}" class="btn-open">Open Exercise</a>
         </div>
     </div>
 @endsection

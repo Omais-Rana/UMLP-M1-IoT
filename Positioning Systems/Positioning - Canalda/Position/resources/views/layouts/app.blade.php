@@ -63,6 +63,39 @@
             border-bottom: 2px solid var(--primary);
         }
 
+        /* Dropdown styles */
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: var(--secondary);
+            min-width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+            z-index: 10;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+
+        .dropdown-content a {
+            color: #dfe6e9;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            border-bottom: none !important;
+        }
+
+        .dropdown-content a:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+
         .container {
             padding: 40px;
             display: flex;
@@ -89,8 +122,16 @@
         <ul class="nav-links">
             <li><a href="{{ route('dashboard') }}"
                     class="{{ request()->routeIs('dashboard') ? 'active' : '' }}">Dashboard</a></li>
-            <li><a href="{{ route('lateration') }}"
-                    class="{{ request()->routeIs('lateration') ? 'active' : '' }}">N-Lateration</a></li>
+
+            <li class="dropdown">
+                <a href="{{ route('lateration') }}"
+                    class="{{ request()->routeIs('lateration') ? 'active' : '' }}">N-Lateration &#9662;</a>
+                <div class="dropdown-content">
+                    <a href="{{ route('lateration', ['example' => 1]) }}">Example 1 (TD - 4 Emitters)</a>
+                    <a href="{{ route('lateration', ['example' => 3]) }}">Example 2 (3 Emitters)</a>
+                </div>
+            </li>
+
             <li><a href="{{ route('fingerprint') }}"
                     class="{{ request()->routeIs('fingerprint') ? 'active' : '' }}">Fingerprinting</a></li>
             <li><a href="{{ route('markov') }}" class="{{ request()->routeIs('markov') ? 'active' : '' }}">Markov

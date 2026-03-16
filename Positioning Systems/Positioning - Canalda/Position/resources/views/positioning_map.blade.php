@@ -51,7 +51,13 @@
 
 @section('content')
     <div class="controls">
-        <h2>Indoor Positioning: N-Lateration (TD n°2)</h2>
+        <h2>Indoor Positioning: N-Lateration
+            @if (isset($example) && $example == 3)
+                (3 Emitters Example)
+            @else
+                (TD n°2 - 4 Emitters)
+            @endif
+        </h2>
         <div
             style="background: #eef2f5; padding: 15px; margin-top: 15px; margin-bottom: 15px; border-left: 4px solid var(--primary); text-align: left; font-size: 0.9em; border-radius: 4px;">
             <strong>Initial Data (Emitters):</strong>
@@ -67,6 +73,25 @@
             <strong>Mathematical Logic:</strong> Grid Search SAE (Sum of Absolute Errors).<br>
             <strong>Cost Function:</strong> f(P) = &sum; | dist(P, E<sub>i</sub>) - d<sub>i</sub> |
         </div>
+
+        <div style="margin-bottom: 20px;">
+            <strong>Test Precision Interval:</strong>
+            <div class="btn-group" style="display: inline-block; margin-left: 10px;">
+                <a href="{{ route('lateration', ['precision' => 1.0, 'example' => isset($example) ? $example : 1]) }}"><button
+                        class="{{ $precision == 1.0 ? 'active' : '' }}">1.0m</button></a>
+                <a href="{{ route('lateration', ['precision' => 0.5, 'example' => isset($example) ? $example : 1]) }}"><button
+                        class="{{ $precision == 0.5 ? 'active' : '' }}">0.5m</button></a>
+                <a href="{{ route('lateration', ['precision' => 0.1, 'example' => isset($example) ? $example : 1]) }}"><button
+                        class="{{ $precision == 0.1 ? 'active' : '' }}">0.1m</button></a>
+            </div>
+
+            @if (isset($executionTime))
+                <div style="margin-top: 10px; font-size: 0.9em; color: #636e72;">
+                    <strong>Execution Time:</strong> {{ $executionTime }} ms
+                </div>
+            @endif
+        </div>
+
         <p>
             <strong>Calculated Position (P̂):</strong>
             @if ($result)
@@ -167,6 +192,10 @@
         function init3D() {
             if (!result) return;
             const container = document.getElementById('container-3d');
+            
+            // Clear prior canvases to prevent stack duplicates
+            container.innerHTML = '';
+            
             const scene = new THREE.Scene();
             scene.background = new THREE.Color(0xffffff);
 
@@ -228,3 +257,4 @@
         init3D();
     </script>
 @endsection
+

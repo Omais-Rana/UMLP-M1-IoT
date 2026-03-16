@@ -9,10 +9,13 @@ class NLaterationManager
 {
     public function __construct(protected PositioningInterface $algorithm) {}
 
-    public function solveStaticScenario()
+    public function solveStaticScenario(float $precision = 0.05, int $example = 1)
     {
-        $emitters = DatasetFactory::createTDDataset();
+        $emitters = $example == 3 ? DatasetFactory::createThreeEmitterDataset() : DatasetFactory::createTDDataset();
 
-        return $this->algorithm->compute($emitters, 0.05); // 0.05m precision
+        return [
+            'emitters' => $emitters,
+            'position' => $this->algorithm->compute($emitters, $precision)
+        ];
     }
 }

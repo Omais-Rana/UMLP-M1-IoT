@@ -23,20 +23,26 @@ class PositioningController extends Controller
      * TD n°2: N-Lateration (Geometric Approach)
      * Renamed from index to lateration to match navbar routes.
      */
-    public function lateration(NLaterationManager $manager): View
+    public function lateration(Request $request, NLaterationManager $manager): View
     {
-        // Get the static dataset for the exercise
-        $emitters = DatasetFactory::createTDDataset();
+        // Allow dynamic precision testing via query parameter (default to 0.1)
+        $precision = (float) $request->query('precision', 0.1);
+        $example = (int) $request->query('example', 1);
 
-        // Run the Grid Search minimization algorithm
-        $result = $manager->solveStaticScenario();
+        // Run the Grid Search minimization algorithm and measure time
+        $startTime = microtime(true);
+        $scenario = $manager->solveStaticScenario($precision, $example);
+        $endTime = microtime(true);
+
+        $executionTime = round(($endTime - $startTime) * 1000, 2); // Time in milliseconds
 
         return view('positioning_map', [
-            'emitters' => $emitters,
-            'result' => $result
+            'emitters' => $scenario['emitters'],
+            'result' => $scenario['position'],
+            'precision' => $precision,
+            'example' => $example,
         ]);
     }
-
     /**
      * TD n°3: Fingerprinting (Probabilistic Approach)
      */
