@@ -35,30 +35,87 @@
         </div>
     </div>
 
-    <table class="table table-bordered">
-        <thead class="table-dark">
-            <tr>
-                <th>From \ To</th>
-                @for ($i = 0; $i < 6; $i++)
-                    <th>C{{ $i }}</th>
-                @endfor
-                <th>Total (nb)</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach ($matrix as $rowIdx => $row)
+    <style>
+        .matrix-table-container {
+            margin: 30px auto;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+            background: #fff;
+        }
+        .matrix-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0;
+            font-size: 0.95em;
+        }
+        .matrix-table thead tr {
+            background-color: #2d3436;
+            color: #ffffff;
+            text-align: center;
+        }
+        .matrix-table th {
+            padding: 15px;
+            text-transform: uppercase;
+            font-size: 0.85em;
+            letter-spacing: 0.5px;
+            border: 1px solid #3b4245;
+        }
+        .matrix-table td {
+            padding: 12px 15px;
+            text-align: center;
+            border: 1px solid #f1f2f6;
+        }
+        .matrix-table tbody tr {
+            border-bottom: 1px solid #f1f2f6;
+        }
+        .matrix-table tbody tr:hover {
+            background-color: #fdfdfd;
+        }
+        .matrix-table td.header-col {
+            background-color: #f8f9fa;
+            font-weight: bold;
+            color: #2d3436;
+            border-right: 2px solid #e0e6ed;
+        }
+        .matrix-table td.total-col {
+            background-color: #fff4f4;
+            font-weight: bold;
+            color: #d63031;
+            border-left: 2px solid #e0e6ed;
+        }
+        .stat-cell {
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+    </style>
+
+    <div class="matrix-table-container">
+        <table class="matrix-table">
+            <thead>
                 <tr>
-                    <td><b>C{{ $rowIdx }}</b></td>
-                    @foreach (array_slice($row, 0, 6) as $cell)
-                        <td style="background: rgba(9, 132, 227, {{ $cell->stat }})">
-                            {{ number_format($cell->stat * 100, 0) }}%
-                        </td>
-                    @endforeach
-                    <td>{{ $row[6]->nb }}</td>
+                    <th>From \ To</th>
+                    @for ($i = 0; $i < 6; $i++)
+                        <th>C{{ $i }}</th>
+                    @endfor
+                    <th>Total (nb)</th>
                 </tr>
-            @endforeach
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @foreach ($matrix as $rowIdx => $row)
+                    <tr>
+                        <td class="header-col">C{{ $rowIdx }}</td>
+                        @foreach (array_slice($row, 0, 6) as $cell)
+                            <td class="stat-cell" style="background: rgba(9, 132, 227, {{ $cell->stat }}); color: {{ $cell->stat > 0.5 ? '#fff' : '#2d3436' }};">
+                                {{ number_format($cell->stat * 100, 0) }}%
+                            </td>
+                        @endforeach
+                        <td class="total-col">{{ $row[6]->nb }}</td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
 
     <div style="margin-top: 30px; border-top: 1px solid #ccc; padding-top: 20px;">
         <form action="{{ route('markov.reset') }}" method="POST">
