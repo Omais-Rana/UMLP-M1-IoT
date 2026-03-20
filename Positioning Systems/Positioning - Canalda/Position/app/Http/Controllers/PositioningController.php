@@ -105,9 +105,27 @@ class PositioningController extends Controller
 
             session(['last_cell_id' => $currentCell]);
             session(['markov_matrix' => $matrix]);
+            // Update last cell to current for prediction
+            $lastCell = $currentCell;
         }
 
-        return view('markov_map', compact('matrix', 'history'));
+        // 3. Predict Next Move based on highest probability
+        $predictedCells = [];
+        $maxProbability = 0;
+
+        if ($lastCell !== null && $matrix[$lastCell][6]->nb > 0) {
+            for ($k = 0; $k < 6; $k++) {
+                $stat = $matrix[$lastCell][$k]->stat;
+                if ($stat > $maxProbability) {
+                    $maxProbability = $stat;
+                    $predictedCells = [$k];
+                } elseif ($stat == $maxProbability && $stat > 0) {
+                    $predictedCells[] = $k;
+                }
+            }
+        }
+
+        return view('markov_map', compact('matrix', 'history', 'predictedCells', 'lastCell', 'maxProbability'));
     }
 
     /**

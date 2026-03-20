@@ -6,13 +6,27 @@
 
     <div style="display: flex; justify-content: center; gap: 40px; margin-bottom: 30px;">
         <!-- Left side: The Grid -->
-        <div style="display: grid; grid-template-columns: repeat(3, 100px); gap: 10px;">
-            @for ($i = 0; $i < 6; $i++)
-                <a href="?move_to={{ $i }}"
-                    style="width:100px; height:100px; border:2px solid #333; display:flex; align-items:center; justify-content:center; text-decoration:none; font-weight:bold; background: {{ session('last_cell_id') === $i ? '#d63031' : '#fff' }}; color: {{ session('last_cell_id') === $i ? '#fff' : '#000' }};">
-                    Cell {{ $i }}
-                </a>
-            @endfor
+        <div>
+            <div style="display: grid; grid-template-columns: repeat(3, 100px); gap: 10px;">
+                @for ($i = 0; $i < 6; $i++)
+                    @php
+                        $isPredicted = isset($predictedCells) && in_array($i, $predictedCells) && $maxProbability > 0;
+                    @endphp
+                    <a href="?move_to={{ $i }}" class="{{ $isPredicted ? 'glow-prediction' : '' }}"
+                        style="width:100px; height:100px; border:2px solid #333; display:flex; align-items:center; justify-content:center; text-decoration:none; font-weight:bold; background: {{ session('last_cell_id') === $i ? '#d63031' : ($isPredicted ? '#fff9e6' : '#fff') }}; color: {{ session('last_cell_id') === $i ? '#fff' : '#000' }}; transition: all 0.3s; transform: {{ $isPredicted ? 'scale(1.05)' : 'none' }};">
+                        Cell {{ $i }}
+                    </a>
+                @endfor
+            </div>
+
+            <!-- Prediction Indicator -->
+            @if (isset($predictedCells) && count($predictedCells) > 0 && $maxProbability > 0)
+                <div
+                    style="margin-top: 20px; padding: 10px; background: #fffcf0; border: 2px solid #f39c12; border-radius: 8px; text-align: center; color: #d35400; font-weight: bold; animation: predictionTextPulse 1.5s infinite alternate;">
+                    Predicting Next Move: Cell {{ implode(', ', $predictedCells) }}
+                    ({{ number_format($maxProbability * 100, 0) }}%)
+                </div>
+            @endif
         </div>
 
         <!-- Right side: The History -->
@@ -43,17 +57,20 @@
             overflow: hidden;
             background: #fff;
         }
+
         .matrix-table {
             width: 100%;
             border-collapse: collapse;
             margin: 0;
             font-size: 0.95em;
         }
+
         .matrix-table thead tr {
             background-color: #2d3436;
             color: #ffffff;
             text-align: center;
         }
+
         .matrix-table th {
             padding: 15px;
             text-transform: uppercase;
@@ -61,32 +78,67 @@
             letter-spacing: 0.5px;
             border: 1px solid #3b4245;
         }
+
         .matrix-table td {
             padding: 12px 15px;
             text-align: center;
             border: 1px solid #f1f2f6;
         }
+
         .matrix-table tbody tr {
             border-bottom: 1px solid #f1f2f6;
         }
+
         .matrix-table tbody tr:hover {
             background-color: #fdfdfd;
         }
+
         .matrix-table td.header-col {
             background-color: #f8f9fa;
             font-weight: bold;
             color: #2d3436;
             border-right: 2px solid #e0e6ed;
         }
+
         .matrix-table td.total-col {
             background-color: #fff4f4;
             font-weight: bold;
             color: #d63031;
             border-left: 2px solid #e0e6ed;
         }
+
         .stat-cell {
             transition: all 0.3s ease;
             font-weight: 600;
+        }
+
+        @keyframes predictionPulse {
+            0% {
+                box-shadow: 0 0 5px #f1c40f, inset 0 0 5px #f1c40f;
+                border-color: #f39c12;
+            }
+
+            100% {
+                box-shadow: 0 0 20px #f39c12, inset 0 0 10px #f39c12;
+                border-color: #e67e22;
+            }
+        }
+
+        @keyframes predictionTextPulse {
+            0% {
+                box-shadow: 0 0 5px rgba(243, 156, 18, 0.4);
+            }
+
+            100% {
+                box-shadow: 0 0 15px rgba(243, 156, 18, 0.8);
+            }
+        }
+
+        .glow-prediction {
+            animation: predictionPulse 1.5s infinite alternate !important;
+            border: 3px solid #f39c12 !important;
+            z-index: 10;
+            position: relative;
         }
     </style>
 
@@ -103,10 +155,21 @@
             </thead>
             <tbody>
                 @foreach ($matrix as $rowIdx => $row)
+                    @php
+                        $isCurrentRow = session('last_cell_id') === $rowIdx;
+                    @endphp
                     <tr>
                         <td class="header-col">C{{ $rowIdx }}</td>
-                        @foreach (array_slice($row, 0, 6) as $cell)
-                            <td class="stat-cell" style="background: rgba(9, 132, 227, {{ $cell->stat }}); color: {{ $cell->stat > 0.5 ? '#fff' : '#2d3436' }};">
+                        @foreach (array_slice($row, 0, 6) as $cellIdx => $cell)
+                            @php
+                                $isPredictedCell =
+                                    $isCurrentRow &&
+                                    isset($predictedCells) &&
+                                    in_array($cellIdx, $predictedCells) &&
+                                    $maxProbability > 0;
+                            @endphp
+                            <td class="stat-cell {{ $isPredictedCell ? 'glow-prediction' : '' }}"
+                                style="background: rgba(9, 132, 227, {{ $cell->stat }}); color: {{ $cell->stat > 0.5 ? '#fff' : '#2d3436' }};">
                                 {{ number_format($cell->stat * 100, 0) }}%
                             </td>
                         @endforeach
