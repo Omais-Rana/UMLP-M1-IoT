@@ -6,13 +6,6 @@ This Laravel project implements and visualizes three fundamental methodologies f
 
 ---
 
-## 👥 Authors (Group 2)
-
-- **Muhammad Omais RANA**
-- **Xavier KNOEPFFLER-POUT**
-
----
-
 ## 🚀 Core Methodologies
 
 ### 1. TD2: N-Lateration (Geometrical)
@@ -43,43 +36,29 @@ A movement-prediction model that anticipates where a user is going based on wher
 ## 🏗️ System Architecture
 
 ### N-Lateration & Fingerprinting
+![N-Lateration UML](public/images/nlat.png)
+*UML Class Diagram for N-Lateration Architecture*
 
-![N-Lateration UML](nlat.png)
-_UML Class Diagram for N-Lateration Architecture_
-
-![Fingerprinting UML](finger.png)
-_UML Class Diagram for Fingerprinting Architecture_
+![Fingerprinting UML](public/images/finger.png)  <-- Added public/images/
+*UML Class Diagram for Fingerprinting Architecture*
 
 ### Markov State Management
-
-![Markov UML](markov.png)
-_UML Class Diagram for Markov State Management_
+![Markov UML](public/images/markov.png)
+*UML Class Diagram for Markov State Management*
 
 ---
 
 ## 📸 Results & Visualization
 
 ### Geometric Positioning (TD2)
-
-![TD2 Result](test1.png)
-_3D positioning outcome with 4 emitters._
+![TD2 Result](public/images/test1.png)
+*3D positioning outcome with 4 emitters.*
 
 ### Probabilistic Matching (TD3)
-
-![TD3 Result](test2.png)
-_WKNN Barycenter visualization showing selected K-Neighbors._
+![TD3 Result](public/images/test2.png)
+*WKNN Barycenter visualization showing selected K-Neighbors.*
 
 ### Predictive Tracking (TD4)
-
-![Markov Result 1](test3.png)
-![Markov Result 2](test31.png)
-_Live probability matrix and dynamic movement prediction._
-
----
-
-## 🛠️ Installation & Setup
-
-1. **Clone the repository:**
-    ```bash
-    git clone [https://github.com/Omais-Rana/UMLP-M1-IoT.git](https://github.com/Omais-Rana/UMLP-M1-IoT.git)
-    ```
+![Markov Result 1](public/images/test3.png)
+![Markov Result 2](public/images/test31.png)
+*Live probability matrix and dynamic movement prediction.*
