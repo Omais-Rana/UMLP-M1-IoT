@@ -109,7 +109,7 @@ class PositioningController extends Controller
             $lastCell = $currentCell;
         }
 
-        // 3. Predict Next Move based on highest probability
+        // 3. Predict Next Move based on highest probability (Forward Analysis)
         $predictedCells = [];
         $maxProbability = 0;
 
@@ -125,7 +125,32 @@ class PositioningController extends Controller
             }
         }
 
-        return view('markov_map', compact('matrix', 'history', 'predictedCells', 'lastCell', 'maxProbability'));
+        // 4. Hindsight Analysis (Backward Analysis / Pseudo-HMM)
+        // If we are currently in $lastCell (j), what is the most likely previous cell (i)?
+        $predictedPrevCells = [];
+        $maxBackwardProbability = 0;
+
+        if ($lastCell !== null) {
+            $totalArrivals = 0;
+            // Sum all transitions arriving AT $lastCell
+            for ($i = 0; $i < 6; $i++) {
+                $totalArrivals += $matrix[$i][$lastCell]->nb;
+            }
+
+            if ($totalArrivals > 0) {
+                for ($i = 0; $i < 6; $i++) {
+                    $backwardProb = $matrix[$i][$lastCell]->nb / $totalArrivals;
+                    if ($backwardProb > $maxBackwardProbability) {
+                        $maxBackwardProbability = $backwardProb;
+                        $predictedPrevCells = [$i];
+                    } elseif ($backwardProb == $maxBackwardProbability && $backwardProb > 0) {
+                        $predictedPrevCells[] = $i;
+                    }
+                }
+            }
+        }
+
+        return view('markov_map', compact('matrix', 'history', 'predictedCells', 'lastCell', 'maxProbability', 'predictedPrevCells', 'maxBackwardProbability'));
     }
 
     /**

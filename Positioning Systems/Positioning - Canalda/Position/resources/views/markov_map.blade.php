@@ -30,19 +30,62 @@
                             @php
                                 $isPredicted =
                                     isset($predictedCells) && in_array($i, $predictedCells) && $maxProbability > 0;
+                                $isBackward =
+                                    isset($predictedPrevCells) &&
+                                    in_array($i, $predictedPrevCells) &&
+                                    $maxBackwardProbability > 0;
+
+                                $cellClass = '';
+                                if ($isPredicted) {
+                                    $cellClass = 'glow-prediction';
+                                } elseif ($isBackward) {
+                                    $cellClass = 'glow-backward';
+                                }
+
+                                $bgColor = '#fff';
+                                if (session('last_cell_id') === $i) {
+                                    $bgColor = '#d63031';
+                                } elseif ($isPredicted) {
+                                    $bgColor = '#fff9e6';
+                                } elseif ($isBackward) {
+                                    $bgColor = '#f4ebf9';
+                                }
                             @endphp
-                            <a href="?move_to={{ $i }}" class="{{ $isPredicted ? 'glow-prediction' : '' }}"
-                                style="width:100px; height:100px; border:2px solid #333; display:flex; align-items:center; justify-content:center; text-decoration:none; font-weight:bold; background: {{ session('last_cell_id') === $i ? '#d63031' : ($isPredicted ? '#fff9e6' : '#fff') }}; color: {{ session('last_cell_id') === $i ? '#fff' : '#000' }}; transition: all 0.3s; transform: {{ $isPredicted ? 'scale(1.05)' : 'none' }};">
+                            <a href="?move_to={{ $i }}" class="{{ $cellClass }}"
+                                style="width:100px; height:100px; border:2px solid #333; display:flex; align-items:center; justify-content:center; text-decoration:none; font-weight:bold; background: {{ $bgColor }}; color: {{ session('last_cell_id') === $i ? '#fff' : '#000' }}; transition: all 0.3s; transform: {{ $isPredicted || $isBackward ? 'scale(1.05)' : 'none' }};">
                                 Cell {{ $i }}
                             </a>
                         @endfor
+                    </div>
+
+                    <!-- Legend -->
+                    <div style="margin-top: 15px; font-size: 0.85em; display: flex; flex-direction: column; gap: 8px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span
+                                style="display:inline-block; width: 15px; height: 15px; background: #fff9e6; border: 2px solid #f39c12; border-radius: 3px;"></span>
+                            <b>Forward HMM (Prediction)</b>
+                            @if (isset($predictedCells) && count($predictedCells) > 0 && $maxProbability > 0)
+                                <span style="color:#d35400;"> C{{ implode(',', $predictedCells) }}
+                                    ({{ number_format($maxProbability * 100, 0) }}%)</span>
+                            @endif
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span
+                                style="display:inline-block; width: 15px; height: 15px; background: #f4ebf9; border: 2px solid #8e44ad; border-radius: 3px;"></span>
+                            <b>Backward HMM (Hindsight)</b>
+                            @if (isset($predictedPrevCells) && count($predictedPrevCells) > 0 && $maxBackwardProbability > 0)
+                                <span style="color:#8e44ad;"> C{{ implode(',', $predictedPrevCells) }}
+                                    ({{ number_format($maxBackwardProbability * 100, 0) }}%)</span>
+                            @endif
+                        </div>
                     </div>
                 </div>
 
                 <!-- Right side: The History -->
                 <div
                     style="width: 250px; background: #f8f9fa; border: 1px solid #ddd; border-radius: 8px; padding: 15px; max-height: 220px; overflow-y: auto;">
-                    <h4 style="margin-top: 0; font-size: 1.1em; border-bottom: 1px solid #ccc; padding-bottom: 5px;">Movement
+                    <h4 style="margin-top: 0; font-size: 1.1em; border-bottom: 1px solid #ccc; padding-bottom: 5px;">
+                        Movement
                         History
                     </h4>
                     <div style="display: flex; flex-wrap: wrap; gap: 5px;">
@@ -151,6 +194,25 @@
                     z-index: 10;
                     position: relative;
                 }
+
+                @keyframes backwardPulse {
+                    0% {
+                        box-shadow: 0 0 5px #9b59b6, inset 0 0 5px #9b59b6;
+                        border-color: #8e44ad;
+                    }
+
+                    100% {
+                        box-shadow: 0 0 20px #8e44ad, inset 0 0 10px #8e44ad;
+                        border-color: #9b59b6;
+                    }
+                }
+
+                .glow-backward {
+                    animation: backwardPulse 1.5s infinite alternate !important;
+                    border: 3px solid #8e44ad !important;
+                    z-index: 9;
+                    position: relative;
+                }
             </style>
 
             <div class="matrix-table-container">
@@ -224,57 +286,41 @@
             // Prepare the matrix data from PHP to JS
             const matrixData = @json($matrix);
             const currentCell = {{ session('last_cell_id') !== null ? session('last_cell_id') : 'null' }};
+            const predictedCells = @json($predictedCells ?? []);
+            const predictedPrevCells = @json($predictedPrevCells ?? []);
 
             // 1. Create Nodes (The 6 Cells)
-            const nodes = new vis.DataSet([{
-                    id: 0,
-                    label: 'Cell 0',
-                    color: currentCell === 0 ? '#ff7675' : '#74b9ff',
-                    font: {
-                        color: currentCell === 0 ? 'white' : 'black'
-                    }
-                },
-                {
-                    id: 1,
-                    label: 'Cell 1',
-                    color: currentCell === 1 ? '#ff7675' : '#74b9ff',
-                    font: {
-                        color: currentCell === 1 ? 'white' : 'black'
-                    }
-                },
-                {
-                    id: 2,
-                    label: 'Cell 2',
-                    color: currentCell === 2 ? '#ff7675' : '#74b9ff',
-                    font: {
-                        color: currentCell === 2 ? 'white' : 'black'
-                    }
-                },
-                {
-                    id: 3,
-                    label: 'Cell 3',
-                    color: currentCell === 3 ? '#ff7675' : '#74b9ff',
-                    font: {
-                        color: currentCell === 3 ? 'white' : 'black'
-                    }
-                },
-                {
-                    id: 4,
-                    label: 'Cell 4',
-                    color: currentCell === 4 ? '#ff7675' : '#74b9ff',
-                    font: {
-                        color: currentCell === 4 ? 'white' : 'black'
-                    }
-                },
-                {
-                    id: 5,
-                    label: 'Cell 5',
-                    color: currentCell === 5 ? '#ff7675' : '#74b9ff',
-                    font: {
-                        color: currentCell === 5 ? 'white' : 'black'
-                    }
+            const nodesArray = [];
+            for (let i = 0; i < 6; i++) {
+                let nodeBg = '#74b9ff';
+                let nodeBorder = '#0984e3';
+
+                if (currentCell === i) {
+                    nodeBg = '#d63031'; // Current (Red)
+                    nodeBorder = '#b33939';
+                } else if (predictedCells.includes(i)) {
+                    nodeBg = '#f39c12'; // Forward (Yellow)
+                    nodeBorder = '#e67e22';
+                } else if (predictedPrevCells.includes(i)) {
+                    nodeBg = '#9b59b6'; // Backward (Purple)
+                    nodeBorder = '#8e44ad';
                 }
-            ]);
+
+                nodesArray.push({
+                    id: i,
+                    label: 'Cell ' + i,
+                    color: {
+                        background: nodeBg,
+                        border: nodeBorder
+                    },
+                    font: {
+                        color: nodeBg === '#74b9ff' ? 'black' : 'white'
+                    },
+                    borderWidth: (nodeBg !== '#74b9ff') ? 3 : 1
+                });
+            }
+
+            const nodes = new vis.DataSet(nodesArray);
 
             // 2. Create Edges (The Transitions > 0%)
             const edgesArray = [];
