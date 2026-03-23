@@ -11,6 +11,23 @@
             max-width: 1600px !important;
             width: 100% !important;
         }
+
+        /* Make it stack on laptops */
+        .main-wrapper {
+            display: flex;
+            gap: 40px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            flex-direction: column;
+            /* Force vertical stacking on small screens */
+        }
+
+        @media (min-width: 1200px) {
+            .main-wrapper {
+                flex-direction: column;
+                /* Changed to always stack to make table visible */
+            }
+        }
     </style>
 @endsection
 
@@ -18,9 +35,9 @@
     <h1>TD n°4: Dynamic Markov Model</h1>
     <p>Click the cells below to simulate movement and update the <b>Transition Matrix</b> in real-time.</p>
 
-    <div style="display: flex; gap: 40px; margin-bottom: 30px; flex-wrap: wrap;">
-        <!-- Left Column -->
-        <div style="flex: 1; min-width: 500px;">
+    <div class="main-wrapper">
+        <!-- Top Column -->
+        <div style="width: 100%;">
 
             <div style="display: flex; justify-content: center; gap: 40px; margin-bottom: 30px;">
                 <!-- Left side: The Grid -->
@@ -56,28 +73,6 @@
                                 Cell {{ $i }}
                             </a>
                         @endfor
-                    </div>
-
-                    <!-- Legend -->
-                    <div style="margin-top: 15px; font-size: 0.85em; display: flex; flex-direction: column; gap: 8px;">
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <span
-                                style="display:inline-block; width: 15px; height: 15px; background: #fff9e6; border: 2px solid #f39c12; border-radius: 3px;"></span>
-                            <b>Forward HMM (Prediction)</b>
-                            @if (isset($predictedCells) && count($predictedCells) > 0 && $maxProbability > 0)
-                                <span style="color:#d35400;"> C{{ implode(',', $predictedCells) }}
-                                    ({{ number_format($maxProbability * 100, 0) }}%)</span>
-                            @endif
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <span
-                                style="display:inline-block; width: 15px; height: 15px; background: #f4ebf9; border: 2px solid #8e44ad; border-radius: 3px;"></span>
-                            <b>Backward HMM (Hindsight)</b>
-                            @if (isset($predictedPrevCells) && count($predictedPrevCells) > 0 && $maxBackwardProbability > 0)
-                                <span style="color:#8e44ad;"> C{{ implode(',', $predictedPrevCells) }}
-                                    ({{ number_format($maxBackwardProbability * 100, 0) }}%)</span>
-                            @endif
-                        </div>
                     </div>
                 </div>
 
@@ -227,6 +222,15 @@
                         </tr>
                     </thead>
                     <tbody>
+                        @php
+                            // Calculate column totals for Backward percentage matches
+                            $colTotals = array_fill(0, 6, 0);
+                            foreach ($matrix as $r) {
+                                for ($c = 0; $c < 6; $c++) {
+                                    $colTotals[$c] += $r[$c]->nb;
+                                }
+                            }
+                        @endphp
                         @foreach ($matrix as $rowIdx => $row)
                             @php
                                 $isCurrentRow = session('last_cell_id') === $rowIdx;
@@ -240,15 +244,75 @@
                                             isset($predictedCells) &&
                                             in_array($cellIdx, $predictedCells) &&
                                             $maxProbability > 0;
+
+                                        $isBackwardCell =
+                                            isset($predictedPrevCells) &&
+                                            in_array($rowIdx, $predictedPrevCells) &&
+                                            $cellIdx === session('last_cell_id') &&
+                                            $maxBackwardProbability > 0;
+
+                                        $glowClass = '';
+                                        if ($isPredictedCell) {
+                                            $glowClass = 'glow-prediction';
+                                        } elseif ($isBackwardCell) {
+                                            $glowClass = 'glow-backward';
+                                        }
+
+                                        $backwardPerc =
+                                            $colTotals[$cellIdx] > 0 ? ($cell->nb / $colTotals[$cellIdx]) * 100 : 0;
                                     @endphp
-                                    <td class="stat-cell {{ $isPredictedCell ? 'glow-prediction' : '' }}"
-                                        style="background: rgba(9, 132, 227, {{ $cell->stat }}); color: {{ $cell->stat > 0.5 ? '#fff' : '#2d3436' }};">
-                                        {{ number_format($cell->stat * 100, 0) }}%
+                                    <td class="stat-cell {{ $glowClass }}"
+                                        style="vertical-align: top; text-align: left; padding: 6px; border: 1px solid #ddd; background: #fff; min-width: 75px;">
+                                        <div style="font-size: 0.9em; margin-bottom: 2px; color: #333;">
+                                            Nb={{ $cell->nb }} ;</div>
+                                        <div
+                                            style="background: yellow; color: black; display: inline-block; padding: 2px 4px; margin-bottom: 2px; font-weight: bold; width: fit-content; min-width: 35px; font-size: 0.85em;">
+                                            {{ number_format($cell->stat * 100, 0) }}%
+                                        </div><br>
+                                        <div
+                                            style="background: red; color: white; display: inline-block; padding: 2px 4px; font-weight: bold; width: fit-content; min-width: 35px; font-size: 0.85em;">
+                                            {{ number_format($backwardPerc, 0) }}%
+                                        </div>
                                     </td>
                                 @endforeach
-                                <td class="total-col">{{ $row[6]->nb }}</td>
+                                <td class="total-col" style="vertical-align: top; text-align: left; padding: 6px;">
+                                    <div style="font-size: 0.9em; margin-bottom: 2px; color: #333;">Nb={{ $row[6]->nb }}
+                                        ;</div>
+                                    <div
+                                        style="background: yellow; color: black; display: inline-block; padding: 2px 4px; font-weight: bold; font-size: 0.85em;">
+                                        @if ($row[6]->nb > 0)
+                                            100%
+                                        @else
+                                            0%
+                                        @endif
+                                    </div>
+                                </td>
                             </tr>
                         @endforeach
+                        <!-- Bottom total row (Somme) -->
+                        <tr style="background-color: #f8f9fa;">
+                            <td class="header-col" style="border-right: 2px solid #e0e6ed;">Somme</td>
+                            @for ($c = 0; $c < 6; $c++)
+                                <td style="vertical-align: top; text-align: left; padding: 6px; border: 1px solid #ddd;">
+                                    <div style="font-size: 0.9em; margin-bottom: 2px; color: #333; font-weight:bold;">
+                                        Nb={{ $colTotals[$c] }} ;</div>
+                                    <div
+                                        style="background: transparent; color: transparent; display: inline-block; padding: 2px 4px; margin-bottom: 2px; font-weight: bold; width: fit-content; min-width: 35px; font-size: 0.85em;">
+                                        <br></div><br>
+                                    <div
+                                        style="background: red; color: white; display: inline-block; padding: 2px 4px; font-weight: bold; font-size: 0.85em;">
+                                        @if ($colTotals[$c] > 0)
+                                            100%
+                                        @else
+                                            0%
+                                        @endif
+                                    </div>
+                                </td>
+                            @endfor
+                            <td class="total-col" style="vertical-align: middle;">
+                                -
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -262,10 +326,10 @@
                     </button>
                 </form>
             </div>
-        </div> <!-- End Left Column -->
+        </div> <!-- End Top Column -->
 
-        <!-- === RIGHT COLUMN: Information/Network Graph === -->
-        <div style="flex: 1; min-width: 500px;">
+        <!-- === BOTTOM COLUMN: Information/Network Graph === -->
+        <div style="width: 100%;">
             <!-- The Vis.js Network Graph Container -->
             <div style="margin-top: 0;">
                 <h3 style="margin-top: 0;">Markov State Transition Graph</h3>
@@ -330,13 +394,15 @@
 
                 for (let to = 0; to < 6; to++) {
                     const stat = matrixData[from][to].stat;
+                    const nb = matrixData[from][to].nb;
+
                     // Only draw an edge if the probability is greater than 0
                     if (stat > 0) {
                         const percentage = Math.round(stat * 100) + '%';
                         edgesArray.push({
                             from: from,
                             to: to,
-                            label: percentage,
+                            label: nb + ' (' + percentage + ')',
                             arrows: 'to',
                             font: {
                                 align: 'middle',
