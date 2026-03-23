@@ -1,0 +1,1283 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Positioning Algorithms</title>
+        <link
+            href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+            rel="stylesheet"
+        />
+        <style>
+            body {
+                background-color: #f8f9fa;
+                padding-top: 2rem;
+                padding-bottom: 2rem;
+            }
+            .card {
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                margin-bottom: 2rem;
+            }
+            .result-box {
+                display: none;
+                margin-top: 1rem;
+            }
+            .code-bg {
+                background-color: #e9ecef;
+                padding: 10px;
+                border-radius: 5px;
+                font-family: monospace;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1 class="mb-4 text-center">Positioning Algorithms Calculator</h1>
+
+            <ul class="nav nav-tabs mb-4" id="algoTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button
+                        class="nav-link active"
+                        id="gridsearch-tab"
+                        data-bs-toggle="tab"
+                        data-bs-target="#gridsearch"
+                        type="button"
+                        role="tab"
+                    >
+                        Grid Search (N-Lateration)
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button
+                        class="nav-link"
+                        id="fingerprint-tab"
+                        data-bs-toggle="tab"
+                        data-bs-target="#fingerprint"
+                        type="button"
+                        role="tab"
+                    >
+                        KNN Fingerprinting
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button
+                        class="nav-link"
+                        id="markov-tab"
+                        data-bs-toggle="tab"
+                        data-bs-target="#markov"
+                        type="button"
+                        role="tab"
+                    >
+                        Markov Model
+                    </button>
+                </li>
+            </ul>
+
+            <div class="tab-content" id="algoTabsContent">
+                <!-- N-LATERATION GRID SEARCH -->
+                <div
+                    class="tab-pane fade show active card p-4"
+                    id="gridsearch"
+                    role="tabpanel"
+                >
+                    <h3>N-Lateration (Grid Search)</h3>
+                    <p class="text-muted">
+                        Enter coordinates and measured distance to each emitter.
+                    </p>
+
+                    <div class="mb-3">
+                        <label class="form-label"
+                            >Search Precision (Step Size)</label
+                        >
+                        <input
+                            type="number"
+                            class="form-control w-25"
+                            id="gridPrecision"
+                            value="0.1"
+                            step="0.1"
+                            min="0.01"
+                        />
+                    </div>
+
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Emitter ID</th>
+                                <th>X Coord</th>
+                                <th>Y Coord</th>
+                                <th>Z Coord</th>
+                                <th>Measured Distance</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="emitterList">
+                            <tr>
+                                <td>
+                                    <input
+                                        type="text"
+                                        class="form-control emitter-id"
+                                        value="E1"
+                                    />
+                                </td>
+                                <td>
+                                    <input
+                                        type="number"
+                                        class="form-control emitter-x"
+                                        value="0.5"
+                                        step="0.1"
+                                    />
+                                </td>
+                                <td>
+                                    <input
+                                        type="number"
+                                        class="form-control emitter-y"
+                                        value="0.5"
+                                        step="0.1"
+                                    />
+                                </td>
+                                <td>
+                                    <input
+                                        type="number"
+                                        class="form-control emitter-z"
+                                        value="0.0"
+                                        step="0.1"
+                                    />
+                                </td>
+                                <td>
+                                    <input
+                                        type="number"
+                                        class="form-control emitter-dist"
+                                        value="3.0"
+                                        step="0.1"
+                                    />
+                                </td>
+                                <td>
+                                    <button
+                                        class="btn btn-danger btn-sm"
+                                        onclick="this.closest('tr').remove()"
+                                    >
+                                        Remove
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <input
+                                        type="text"
+                                        class="form-control emitter-id"
+                                        value="E2"
+                                    />
+                                </td>
+                                <td>
+                                    <input
+                                        type="number"
+                                        class="form-control emitter-x"
+                                        value="4.0"
+                                        step="0.1"
+                                    />
+                                </td>
+                                <td>
+                                    <input
+                                        type="number"
+                                        class="form-control emitter-y"
+                                        value="0.0"
+                                        step="0.1"
+                                    />
+                                </td>
+                                <td>
+                                    <input
+                                        type="number"
+                                        class="form-control emitter-z"
+                                        value="0.0"
+                                        step="0.1"
+                                    />
+                                </td>
+                                <td>
+                                    <input
+                                        type="number"
+                                        class="form-control emitter-dist"
+                                        value="2.0"
+                                        step="0.1"
+                                    />
+                                </td>
+                                <td>
+                                    <button
+                                        class="btn btn-danger btn-sm"
+                                        onclick="this.closest('tr').remove()"
+                                    >
+                                        Remove
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <input
+                                        type="text"
+                                        class="form-control emitter-id"
+                                        value="E3"
+                                    />
+                                </td>
+                                <td>
+                                    <input
+                                        type="number"
+                                        class="form-control emitter-x"
+                                        value="4.0"
+                                        step="0.1"
+                                    />
+                                </td>
+                                <td>
+                                    <input
+                                        type="number"
+                                        class="form-control emitter-y"
+                                        value="5.0"
+                                        step="0.1"
+                                    />
+                                </td>
+                                <td>
+                                    <input
+                                        type="number"
+                                        class="form-control emitter-z"
+                                        value="0.0"
+                                        step="0.1"
+                                    />
+                                </td>
+                                <td>
+                                    <input
+                                        type="number"
+                                        class="form-control emitter-dist"
+                                        value="4.2"
+                                        step="0.1"
+                                    />
+                                </td>
+                                <td>
+                                    <button
+                                        class="btn btn-danger btn-sm"
+                                        onclick="this.closest('tr').remove()"
+                                    >
+                                        Remove
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <button
+                        class="btn btn-secondary mb-3"
+                        onclick="addEmitter()"
+                    >
+                        + Add Emitter
+                    </button>
+                    <br />
+                    <button
+                        class="btn btn-primary"
+                        onclick="calculateGridSearch()"
+                    >
+                        Calculate Position
+                    </button>
+
+                    <div
+                        id="gridResult"
+                        class="alert alert-success result-box"
+                    ></div>
+                </div>
+
+                <!-- KNN FINGERPRINTING -->
+                <div
+                    class="tab-pane fade card p-4"
+                    id="fingerprint"
+                    role="tabpanel"
+                >
+                    <h3>KNN Fingerprinting</h3>
+                    <p class="text-muted">
+                        Enter the measured RSSI at the target terminal.
+                    </p>
+
+                    <div class="row mb-3">
+                        <div class="col-md-3">
+                            <label class="form-label">K (Neighbors)</label>
+                            <input
+                                type="number"
+                                class="form-control"
+                                id="knnK"
+                                value="3"
+                                min="1"
+                            />
+                        </div>
+                    </div>
+
+                    <h5>Reference Database (Cells)</h5>
+                    <div
+                        class="table-responsive mb-3 pr-2"
+                        style="max-height: 250px; overflow-y: auto"
+                    >
+                        <table
+                            class="table table-bordered table-sm text-center"
+                        >
+                            <thead
+                                class="table-light dropdown-header position-sticky top-0"
+                            >
+                                <tr>
+                                    <th>Cell ID</th>
+                                    <th>X Coord</th>
+                                    <th>Y Coord</th>
+                                    <th>E1 RSSI</th>
+                                    <th>E2 RSSI</th>
+                                    <th>E3 RSSI</th>
+                                    <th>E4 RSSI</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="fpCellList">
+                                <!-- Default 9 Cells populated representing 3x3 array -->
+                                <tr>
+                                    <td>
+                                        <input
+                                            type="text"
+                                            class="form-control form-control-sm cell-id"
+                                            value="(0,0)"
+                                        />
+                                    </td>
+                                    <td>
+                                        <input
+                                            type="number"
+                                            class="form-control form-control-sm cell-x"
+                                            value="2"
+                                        />
+                                    </td>
+                                    <td>
+                                        <input
+                                            type="number"
+                                            class="form-control form-control-sm cell-y"
+                                            value="2"
+                                        />
+                                    </td>
+                                    <td>
+                                        <input
+                                            type="number"
+                                            class="form-control form-control-sm cell-e1"
+                                            value="-38"
+                                        />
+                                    </td>
+                                    <td>
+                                        <input
+                                            type="number"
+                                            class="form-control form-control-sm cell-e2"
+                                            value="-27"
+                                        />
+                                    </td>
+                                    <td>
+                                        <input
+                                            type="number"
+                                            class="form-control form-control-sm cell-e3"
+                                            value="-54"
+                                        />
+                                    </td>
+                                    <td>
+                                        <input
+                                            type="number"
+                                            class="form-control form-control-sm cell-e4"
+                                            value="-13"
+                                        />
+                                    </td>
+                                    <td>
+                                        <button
+                                            class="btn btn-danger btn-sm"
+                                            onclick="
+                                                this.closest('tr').remove()
+                                            "
+                                        >
+                                            X
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <input
+                                            type="text"
+                                            class="form-control form-control-sm cell-id"
+                                            value="(0,1)"
+                                        />
+                                    </td>
+                                    <td>
+                                        <input
+                                            type="number"
+                                            class="form-control form-control-sm cell-x"
+                                            value="6"
+                                        />
+                                    </td>
+                                    <td>
+                                        <input
+                                            type="number"
+                                            class="form-control form-control-sm cell-y"
+                                            value="2"
+                                        />
+                                    </td>
+                                    <td>
+                                        <input
+                                            type="number"
+                                            class="form-control form-control-sm cell-e1"
+                                            value="-74"
+                                        />
+                                    </td>
+                                    <td>
+                                        <input
+                                            type="number"
+                                            class="form-control form-control-sm cell-e2"
+                                            value="-62"
+                                        />
+                                    </td>
+                                    <td>
+                                        <input
+                                            type="number"
+                                            class="form-control form-control-sm cell-e3"
+                                            value="-48"
+                                        />
+                                    </td>
+                                    <td>
+                                        <input
+                                            type="number"
+                                            class="form-control form-control-sm cell-e4"
+                                            value="-33"
+                                        />
+                                    </td>
+                                    <td>
+                                        <button
+                                            class="btn btn-danger btn-sm"
+                                            onclick="
+                                                this.closest('tr').remove()
+                                            "
+                                        >
+                                            X
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <input
+                                            type="text"
+                                            class="form-control form-control-sm cell-id"
+                                            value="(0,2)"
+                                        />
+                                    </td>
+                                    <td>
+                                        <input
+                                            type="number"
+                                            class="form-control form-control-sm cell-x"
+                                            value="10"
+                                        />
+                                    </td>
+                                    <td>
+                                        <input
+                                            type="number"
+                                            class="form-control form-control-sm cell-y"
+                                            value="2"
+                                        />
+                                    </td>
+                                    <td>
+                                        <input
+                                            type="number"
+                                            class="form-control form-control-sm cell-e1"
+                                            value="-13"
+                                        />
+                                    </td>
+                                    <td>
+                                        <input
+                                            type="number"
+                                            class="form-control form-control-sm cell-e2"
+                                            value="-28"
+                                        />
+                                    </td>
+                                    <td>
+                                        <input
+                                            type="number"
+                                            class="form-control form-control-sm cell-e3"
+                                            value="-12"
+                                        />
+                                    </td>
+                                    <td>
+                                        <input
+                                            type="number"
+                                            class="form-control form-control-sm cell-e4"
+                                            value="-40"
+                                        />
+                                    </td>
+                                    <td>
+                                        <button
+                                            class="btn btn-danger btn-sm"
+                                            onclick="
+                                                this.closest('tr').remove()
+                                            "
+                                        >
+                                            X
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <input
+                                            type="text"
+                                            class="form-control form-control-sm cell-id"
+                                            value="(1,0)"
+                                        />
+                                    </td>
+                                    <td>
+                                        <input
+                                            type="number"
+                                            class="form-control form-control-sm cell-x"
+                                            value="2"
+                                        />
+                                    </td>
+                                    <td>
+                                        <input
+                                            type="number"
+                                            class="form-control form-control-sm cell-y"
+                                            value="6"
+                                        />
+                                    </td>
+                                    <td>
+                                        <input
+                                            type="number"
+                                            class="form-control form-control-sm cell-e1"
+                                            value="-34"
+                                        />
+                                    </td>
+                                    <td>
+                                        <input
+                                            type="number"
+                                            class="form-control form-control-sm cell-e2"
+                                            value="-27"
+                                        />
+                                    </td>
+                                    <td>
+                                        <input
+                                            type="number"
+                                            class="form-control form-control-sm cell-e3"
+                                            value="-38"
+                                        />
+                                    </td>
+                                    <td>
+                                        <input
+                                            type="number"
+                                            class="form-control form-control-sm cell-e4"
+                                            value="-41"
+                                        />
+                                    </td>
+                                    <td>
+                                        <button
+                                            class="btn btn-danger btn-sm"
+                                            onclick="
+                                                this.closest('tr').remove()
+                                            "
+                                        >
+                                            X
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <input
+                                            type="text"
+                                            class="form-control form-control-sm cell-id"
+                                            value="(1,1)"
+                                        />
+                                    </td>
+                                    <td>
+                                        <input
+                                            type="number"
+                                            class="form-control form-control-sm cell-x"
+                                            value="6"
+                                        />
+                                    </td>
+                                    <td>
+                                        <input
+                                            type="number"
+                                            class="form-control form-control-sm cell-y"
+                                            value="6"
+                                        />
+                                    </td>
+                                    <td>
+                                        <input
+                                            type="number"
+                                            class="form-control form-control-sm cell-e1"
+                                            value="-64"
+                                        />
+                                    </td>
+                                    <td>
+                                        <input
+                                            type="number"
+                                            class="form-control form-control-sm cell-e2"
+                                            value="-48"
+                                        />
+                                    </td>
+                                    <td>
+                                        <input
+                                            type="number"
+                                            class="form-control form-control-sm cell-e3"
+                                            value="-72"
+                                        />
+                                    </td>
+                                    <td>
+                                        <input
+                                            type="number"
+                                            class="form-control form-control-sm cell-e4"
+                                            value="-35"
+                                        />
+                                    </td>
+                                    <td>
+                                        <button
+                                            class="btn btn-danger btn-sm"
+                                            onclick="
+                                                this.closest('tr').remove()
+                                            "
+                                        >
+                                            X
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <input
+                                            type="text"
+                                            class="form-control form-control-sm cell-id"
+                                            value="(1,2)"
+                                        />
+                                    </td>
+                                    <td>
+                                        <input
+                                            type="number"
+                                            class="form-control form-control-sm cell-x"
+                                            value="10"
+                                        />
+                                    </td>
+                                    <td>
+                                        <input
+                                            type="number"
+                                            class="form-control form-control-sm cell-y"
+                                            value="6"
+                                        />
+                                    </td>
+                                    <td>
+                                        <input
+                                            type="number"
+                                            class="form-control form-control-sm cell-e1"
+                                            value="-45"
+                                        />
+                                    </td>
+                                    <td>
+                                        <input
+                                            type="number"
+                                            class="form-control form-control-sm cell-e2"
+                                            value="-37"
+                                        />
+                                    </td>
+                                    <td>
+                                        <input
+                                            type="number"
+                                            class="form-control form-control-sm cell-e3"
+                                            value="-20"
+                                        />
+                                    </td>
+                                    <td>
+                                        <input
+                                            type="number"
+                                            class="form-control form-control-sm cell-e4"
+                                            value="-15"
+                                        />
+                                    </td>
+                                    <td>
+                                        <button
+                                            class="btn btn-danger btn-sm"
+                                            onclick="
+                                                this.closest('tr').remove()
+                                            "
+                                        >
+                                            X
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <input
+                                            type="text"
+                                            class="form-control form-control-sm cell-id"
+                                            value="(2,0)"
+                                        />
+                                    </td>
+                                    <td>
+                                        <input
+                                            type="number"
+                                            class="form-control form-control-sm cell-x"
+                                            value="2"
+                                        />
+                                    </td>
+                                    <td>
+                                        <input
+                                            type="number"
+                                            class="form-control form-control-sm cell-y"
+                                            value="10"
+                                        />
+                                    </td>
+                                    <td>
+                                        <input
+                                            type="number"
+                                            class="form-control form-control-sm cell-e1"
+                                            value="-17"
+                                        />
+                                    </td>
+                                    <td>
+                                        <input
+                                            type="number"
+                                            class="form-control form-control-sm cell-e2"
+                                            value="-50"
+                                        />
+                                    </td>
+                                    <td>
+                                        <input
+                                            type="number"
+                                            class="form-control form-control-sm cell-e3"
+                                            value="-44"
+                                        />
+                                    </td>
+                                    <td>
+                                        <input
+                                            type="number"
+                                            class="form-control form-control-sm cell-e4"
+                                            value="-33"
+                                        />
+                                    </td>
+                                    <td>
+                                        <button
+                                            class="btn btn-danger btn-sm"
+                                            onclick="
+                                                this.closest('tr').remove()
+                                            "
+                                        >
+                                            X
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <input
+                                            type="text"
+                                            class="form-control form-control-sm cell-id"
+                                            value="(2,1)"
+                                        />
+                                    </td>
+                                    <td>
+                                        <input
+                                            type="number"
+                                            class="form-control form-control-sm cell-x"
+                                            value="6"
+                                        />
+                                    </td>
+                                    <td>
+                                        <input
+                                            type="number"
+                                            class="form-control form-control-sm cell-y"
+                                            value="10"
+                                        />
+                                    </td>
+                                    <td>
+                                        <input
+                                            type="number"
+                                            class="form-control form-control-sm cell-e1"
+                                            value="-27"
+                                        />
+                                    </td>
+                                    <td>
+                                        <input
+                                            type="number"
+                                            class="form-control form-control-sm cell-e2"
+                                            value="-28"
+                                        />
+                                    </td>
+                                    <td>
+                                        <input
+                                            type="number"
+                                            class="form-control form-control-sm cell-e3"
+                                            value="-32"
+                                        />
+                                    </td>
+                                    <td>
+                                        <input
+                                            type="number"
+                                            class="form-control form-control-sm cell-e4"
+                                            value="-45"
+                                        />
+                                    </td>
+                                    <td>
+                                        <button
+                                            class="btn btn-danger btn-sm"
+                                            onclick="
+                                                this.closest('tr').remove()
+                                            "
+                                        >
+                                            X
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <input
+                                            type="text"
+                                            class="form-control form-control-sm cell-id"
+                                            value="(2,2)"
+                                        />
+                                    </td>
+                                    <td>
+                                        <input
+                                            type="number"
+                                            class="form-control form-control-sm cell-x"
+                                            value="10"
+                                        />
+                                    </td>
+                                    <td>
+                                        <input
+                                            type="number"
+                                            class="form-control form-control-sm cell-y"
+                                            value="10"
+                                        />
+                                    </td>
+                                    <td>
+                                        <input
+                                            type="number"
+                                            class="form-control form-control-sm cell-e1"
+                                            value="-30"
+                                        />
+                                    </td>
+                                    <td>
+                                        <input
+                                            type="number"
+                                            class="form-control form-control-sm cell-e2"
+                                            value="-20"
+                                        />
+                                    </td>
+                                    <td>
+                                        <input
+                                            type="number"
+                                            class="form-control form-control-sm cell-e3"
+                                            value="-60"
+                                        />
+                                    </td>
+                                    <td>
+                                        <input
+                                            type="number"
+                                            class="form-control form-control-sm cell-e4"
+                                            value="-40"
+                                        />
+                                    </td>
+                                    <td>
+                                        <button
+                                            class="btn btn-danger btn-sm"
+                                            onclick="
+                                                this.closest('tr').remove()
+                                            "
+                                        >
+                                            X
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <button
+                        class="btn btn-secondary btn-sm mb-3"
+                        onclick="addCell()"
+                    >
+                        + Add Reference Cell
+                    </button>
+
+                    <h5>Target Measurements (RSSI)</h5>
+                    <div class="row mb-3" id="targetMeasurements">
+                        <div class="col-md-2 mb-2">
+                            <label>E1:</label>
+                            <input
+                                type="number"
+                                class="form-control tgt-rssi"
+                                data-id="E1"
+                                value="-26"
+                            />
+                        </div>
+                        <div class="col-md-2 mb-2">
+                            <label>E2:</label>
+                            <input
+                                type="number"
+                                class="form-control tgt-rssi"
+                                data-id="E2"
+                                value="-42"
+                            />
+                        </div>
+                        <div class="col-md-2 mb-2">
+                            <label>E3:</label>
+                            <input
+                                type="number"
+                                class="form-control tgt-rssi"
+                                data-id="E3"
+                                value="-13"
+                            />
+                        </div>
+                        <div class="col-md-2 mb-2">
+                            <label>E4:</label>
+                            <input
+                                type="number"
+                                class="form-control tgt-rssi"
+                                data-id="E4"
+                                value="-46"
+                            />
+                        </div>
+                    </div>
+
+                    <button
+                        class="btn btn-primary"
+                        onclick="calculateFingerprint()"
+                    >
+                        Calculate Position
+                    </button>
+
+                    <div
+                        id="fingerprintResult"
+                        class="alert alert-success result-box"
+                    ></div>
+                </div>
+
+                <!-- MARKOV MODEL -->
+                <div class="tab-pane fade card p-4" id="markov" role="tabpanel">
+                    <h3>Markov Movement Prediction</h3>
+                    <p class="text-muted">
+                        Enter a sequence of states (comma-separated) to train
+                        the model, and define the current state to predict the
+                        next.
+                    </p>
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <h5>Simulation Grid</h5>
+                            <p class="small text-muted mb-2">
+                                Click to trace a path through the rooms:
+                            </p>
+                            <div class="row g-1 mb-2" style="max-width: 250px">
+                                <div class="col-4">
+                                    <button
+                                        class="btn btn-outline-secondary w-100"
+                                        onclick="addMarkovState('3')"
+                                    >
+                                        Cell 3
+                                    </button>
+                                </div>
+                                <div class="col-4">
+                                    <button
+                                        class="btn btn-outline-secondary w-100"
+                                        onclick="addMarkovState('4')"
+                                    >
+                                        Cell 4
+                                    </button>
+                                </div>
+                                <div class="col-4">
+                                    <button
+                                        class="btn btn-outline-secondary w-100"
+                                        onclick="addMarkovState('5')"
+                                    >
+                                        Cell 5
+                                    </button>
+                                </div>
+
+                                <div class="col-4">
+                                    <button
+                                        class="btn btn-outline-secondary w-100"
+                                        onclick="addMarkovState('0')"
+                                    >
+                                        Cell 0
+                                    </button>
+                                </div>
+                                <div class="col-4">
+                                    <button
+                                        class="btn btn-outline-secondary w-100"
+                                        onclick="addMarkovState('1')"
+                                    >
+                                        Cell 1
+                                    </button>
+                                </div>
+                                <div class="col-4">
+                                    <button
+                                        class="btn btn-outline-secondary w-100"
+                                        onclick="addMarkovState('2')"
+                                    >
+                                        Cell 2
+                                    </button>
+                                </div>
+                            </div>
+                            <button
+                                class="btn btn-sm btn-warning mb-4"
+                                onclick="
+                                    document.getElementById(
+                                        'markovHistory',
+                                    ).value = ''
+                                "
+                            >
+                                Clear Route
+                            </button>
+                        </div>
+
+                        <div class="col-md-8">
+                            <div class="mb-3">
+                                <label class="form-label"
+                                    >Historical Path (Comma Separated
+                                    States)</label
+                                >
+                                <textarea
+                                    class="form-control"
+                                    id="markovHistory"
+                                    rows="3"
+                                >
+0, 1, 2, 5, 4, 3, 0, 1, 4, 5, 2, 1</textarea
+                                >
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label"
+                                    >Current State (starting point for
+                                    prediction)</label
+                                >
+                                <input
+                                    type="text"
+                                    class="form-control w-25"
+                                    id="markovCurrentState"
+                                    value="1"
+                                />
+                            </div>
+
+                            <button
+                                class="btn btn-primary"
+                                onclick="calculateMarkov()"
+                            >
+                                Predict Next State
+                            </button>
+
+                            <div
+                                id="markovResult"
+                                class="alert alert-success result-box"
+                            ></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        <script>
+            // N-Lateration Actions
+            function addEmitter() {
+                const row = `<tr>
+            <td><input type="text" class="form-control emitter-id" value="E${document.querySelectorAll("#emitterList tr").length + 1}"></td>
+            <td><input type="number" class="form-control emitter-x" value="0" step="0.1"></td>
+            <td><input type="number" class="form-control emitter-y" value="0" step="0.1"></td>
+            <td><input type="number" class="form-control emitter-z" value="0" step="0.1"></td>
+            <td><input type="number" class="form-control emitter-dist" value="1.0" step="0.1"></td>
+            <td><button class="btn btn-danger btn-sm" onclick="this.closest('tr').remove()">Remove</button></td>
+        </tr>`;
+                document
+                    .getElementById("emitterList")
+                    .insertAdjacentHTML("beforeend", row);
+            }
+
+            async function calculateGridSearch() {
+                const rBox = document.getElementById("gridResult");
+                rBox.style.display = "none";
+
+                const emitters = [];
+                document.querySelectorAll("#emitterList tr").forEach((row) => {
+                    emitters.push({
+                        id: row.querySelector(".emitter-id").value,
+                        x: row.querySelector(".emitter-x").value,
+                        y: row.querySelector(".emitter-y").value,
+                        z: row.querySelector(".emitter-z").value,
+                        distance: row.querySelector(".emitter-dist").value,
+                    });
+                });
+
+                const reqBody = {
+                    precision: document.getElementById("gridPrecision").value,
+                    emitters: emitters,
+                };
+
+                const res = await fetch("/api/grid_search", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(reqBody),
+                });
+                const data = await res.json();
+
+                rBox.innerHTML = `<strong>Estimated Position:</strong> X=${data.x}, Y=${data.y}, Z=${data.z}`;
+                rBox.style.display = "block";
+            }
+
+            function addCell() {
+                const row = `<tr>
+            <td><input type="text" class="form-control form-control-sm cell-id" value="New"></td>
+            <td><input type="number" class="form-control form-control-sm cell-x" value="0"></td>
+            <td><input type="number" class="form-control form-control-sm cell-y" value="0"></td>
+            <td><input type="number" class="form-control form-control-sm cell-e1" value="0"></td>
+            <td><input type="number" class="form-control form-control-sm cell-e2" value="0"></td>
+            <td><input type="number" class="form-control form-control-sm cell-e3" value="0"></td>
+            <td><input type="number" class="form-control form-control-sm cell-e4" value="0"></td>
+            <td><button class="btn btn-danger btn-sm" onclick="this.closest('tr').remove()">X</button></td>
+        </tr>`;
+                document
+                    .getElementById("fpCellList")
+                    .insertAdjacentHTML("beforeend", row);
+            }
+
+            // KNN Fingerprinting Actions
+            async function calculateFingerprint() {
+                const rBox = document.getElementById("fingerprintResult");
+                rBox.style.display = "none";
+
+                const target = {};
+                document.querySelectorAll(".tgt-rssi").forEach((input) => {
+                    target[input.dataset.id] = input.value;
+                });
+
+                const cells = [];
+                document.querySelectorAll("#fpCellList tr").forEach((row) => {
+                    cells.push({
+                        id: row.querySelector(".cell-id").value,
+                        coords: `${row.querySelector(".cell-x").value},${row.querySelector(".cell-y").value},0`,
+                        rssi: {
+                            E1: row.querySelector(".cell-e1").value,
+                            E2: row.querySelector(".cell-e2").value,
+                            E3: row.querySelector(".cell-e3").value,
+                            E4: row.querySelector(".cell-e4").value,
+                        },
+                    });
+                });
+
+                const reqBody = {
+                    k: document.getElementById("knnK").value,
+                    target: target,
+                    cells: cells,
+                };
+
+                const res = await fetch("/api/fingerprint", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(reqBody),
+                });
+                const data = await res.json();
+
+                rBox.innerHTML = `<strong>Estimated Target Position:</strong> X=${data.x}, Y=${data.y}, Z=${data.z}`;
+                rBox.style.display = "block";
+            }
+
+            // Markov Actions
+            function addMarkovState(state) {
+                const ta = document.getElementById("markovHistory");
+                const currentStateInput =
+                    document.getElementById("markovCurrentState");
+                if (ta.value.trim() === "") {
+                    ta.value = state;
+                } else {
+                    ta.value += ", " + state;
+                }
+                currentStateInput.value = state;
+            }
+
+            async function calculateMarkov() {
+                const rBox = document.getElementById("markovResult");
+                rBox.style.display = "none";
+
+                const reqBody = {
+                    history: document.getElementById("markovHistory").value,
+                    current_state:
+                        document.getElementById("markovCurrentState").value,
+                };
+
+                const res = await fetch("/api/markov", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(reqBody),
+                });
+                const data = await res.json();
+
+                if (data.error) {
+                    rBox.innerHTML = `<span class="text-danger">${data.error}</span>`;
+                } else {
+                    let probs = Object.entries(data.probabilities)
+                        .map(([state, prob]) => `<li>Status <b>${state}</b> : ${(prob * 100).toFixed(1)}%</li>`)
+                        .join("");
+                    
+                    let prev_probs = Object.entries(data.prev_probabilities)
+                        .map(([state, prob]) => `<li>Status <b>${state}</b> : ${(prob * 100).toFixed(1)}%</li>`)
+                        .join("");
+
+                    // Build Matrix Table (Forward)
+                    let matrixHtml = `
+                    <div class="mt-4">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5>Forward Transition Matrix</h5>
+                                <div class="table-responsive">
+                                    <table class="table table-bordered table-sm text-center">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>States</th>
+                                                ${data.matrix.headers.map((h) => `<th>${h}</th>`).join("")}
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            ${data.matrix.rows.map((row, i) => `
+                                                <tr>
+                                                    <th class="table-light">${data.matrix.headers[i]}</th>
+                                                    ${row.map((val) => `<td>${(val * 100).toFixed(1)}%</td>`).join("")}
+                                                </tr>
+                                            `).join("")}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <h5>Backward Transition Matrix</h5>
+                                <div class="table-responsive">
+                                    <table class="table table-bordered table-sm text-center">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>States</th>
+                                                ${data.matrix.headers.map((h) => `<th>${h}</th>`).join("")}
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            ${data.matrix.rows_backward.map((row, i) => `
+                                                <tr>
+                                                    <th class="table-light">${data.matrix.headers[i]}</th>
+                                                    ${row.map((val) => `<td>${(val * 100).toFixed(1)}%</td>`).join("")}
+                                                </tr>
+                                            `).join("")}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+
+                    rBox.innerHTML = `
+                    <div class="row">
+                        <div class="col-md-6">
+                            <b>Most Likely Next State:</b> <span class="badge bg-success" style="font-size: 1.1em">${data.most_likely || "Unknown"}</span><br><br>
+                            <b>Forward Probabilities (from current):</b>
+                            <ul>${probs === "" ? "<li>No probable next state (or dead end)</li>" : probs}</ul>
+                        </div>
+                        <div class="col-md-6">
+                            <b>Most Likely Previous State:</b> <span class="badge bg-warning text-dark" style="font-size: 1.1em">${data.most_likely_prev || "Unknown"}</span><br><br>
+                            <b>Backward Probabilities (into current):</b>
+                            <ul>${prev_probs === "" ? "<li>No probable previous state (or dead end)</li>" : prev_probs}</ul>
+                        </div>
+                    </div>
+                    <hr>
+                    ${matrixHtml}
+            `;
+                }
+                rBox.style.display = "block";
+            }
+        </script>
+    </body>
+</html>
