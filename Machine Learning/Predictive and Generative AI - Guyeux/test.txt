@@ -1,0 +1,55 @@
+Charge your Pixel phone
+You can charge your Pixel phone wirelessly or with a USB-C cable.
+
+Check your battery level
+Open your phone’s Settings app.
+Tap Battery.
+Charge your Pixel phone with a cable
+Check the USB-C port & cable
+
+In the port at the bottom of your phone, plug either end of the USB-C cable.
+Plug the other end of the cable into the power adapter.
+Plug your power adapter into a power outlet.
+Tip: Make sure your phone is in a cool spot where it won’t get too hot. Learn how to keep your Pixel phone from feeling too warm or hot.
+
+Charge your Pixel phone fast
+Important: All Pixel phones can charge with USB-C cables.
+
+Use a wall outlet. Other power sources like laptops can sometimes charge slower.
+You can use your phone while it's charging, but to charge faster, limit usage.
+Use a power adapter that’s compatible with your Pixel phone like the Google 45W USB-C Power Charger or the Pixel Flex Dual Port 67W USB-C Fast Charger.
+Tip: If your phone doesn’t charge, learn how to fix a Pixel phone that won't charge or turn on.
+
+Charge your Pixel phone wirelessly
+Important: Wireless charging is available on Pixel 3 and later, except Pixel 3a, Pixel 4a, Pixel 4a (5G), Pixel 5a, and Pixel 6a.
+
+Wireless charging on Pixel 10, Pixel 10 Pro, Pixel 10 Pro XL & Pixel 10 Pro Fold
+Wireless charging on Pixel 9a & earlier
+Wireless charging on Pixel 9 Pro Fold
+Know when your phone is charging
+Important: Make sure your phone's ring sound is on. Learn how to change volume, sound, and vibrate settings on your Pixel phone.
+
+Open your phone's Settings app.
+Tap Sound & vibration.
+Turn on Charging sounds and vibration.
+When you plug in your phone or place it on a wireless charger, the charging indicator lights up and your phone vibrates.
+Set up customizations
+How to use Charging optimization 
+Create a custom screen saver for charging
+Charging tips
+Which cables & power adapters to use for your Pixel phone?
+Does your charging accessory work with your Pixel phone?
+How do I use Battery Share to charge other devices wirelessly?
+Why is my phone charging slower than usual?
+Technical notes
+If you want to remove the battery, it's best to take it to an authorized repair partner. We do not recommend that you take the battery out yourself.
+Power adapters differ by country or region.
+When to contact support
+If your phone won't charge, turn on, or has other power-related issues, contact us.
+For possible solutions to other issues with your phone, you can post questions on the Google Pixel Help Community or the Pixel Tablet Help Community.
+Related resources
+Turn your Pixel phone on or off
+Check battery level on your Pixel phone
+Get the most life from your Pixel phone battery
+Charge other devices with Pixel
+Fix a phone that won't charge

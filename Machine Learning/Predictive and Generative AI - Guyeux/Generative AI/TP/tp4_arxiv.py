@@ -1,15 +1,86 @@
 import os
+import time
+import arxiv
 from dotenv import load_dotenv
 from langsmith import Client
 from langchain_classic.agents import create_react_agent, AgentExecutor
-from langchain_community.agent_toolkits.load_tools import load_tools
+from langchain_core.tools import Tool
 from langchain_mistralai.chat_models import ChatMistralAI
 from langchain_core.prompts import PromptTemplate
 
 load_dotenv()
 
 llm = ChatMistralAI(model="mistral-large-latest", temperature=0)
-tools = load_tools(["arxiv"])
+
+
+def safe_arxiv_search(query: str) -> str:
+	normalized_query = query.strip()
+	arxiv_id = None
+	if normalized_query.lower().startswith("id:"):
+		arxiv_id = normalized_query.split(":", 1)[1].strip()
+	elif normalized_query.replace(".", "").replace("v", "").isdigit():
+		arxiv_id = normalized_query
+
+	retries = 4
+	base_wait_seconds = 2
+	for attempt in range(1, retries + 1):
+		try:
+			client = arxiv.Client(num_retries=0, page_size=3, delay_seconds=0)
+			if arxiv_id:
+				search = arxiv.Search(id_list=[arxiv_id], max_results=1)
+			else:
+				search = arxiv.Search(
+					query=normalized_query,
+					max_results=3,
+					sort_by=arxiv.SortCriterion.Relevance,
+				)
+
+			papers = list(client.results(search))
+			if not papers:
+				return f"No arXiv results found for query: {normalized_query}"
+
+			chunks = []
+			for idx, paper in enumerate(papers, start=1):
+				authors = ", ".join(author.name for author in paper.authors[:5])
+				chunks.append(
+					f"Result {idx}:\n"
+					f"Title: {paper.title}\n"
+					f"ID: {paper.get_short_id()}\n"
+					f"Published: {paper.published.date()}\n"
+					f"Authors: {authors}\n"
+					f"Summary: {paper.summary}"
+				)
+			return "\n\n".join(chunks)
+		except Exception as exc:
+			message = str(exc)
+			is_transient = "HTTP 429" in message or "HTTP 503" in message
+			if is_transient and attempt < retries:
+				wait_seconds = base_wait_seconds ** attempt
+				print(
+					f"[arxiv] transient error ({message}). "
+					f"Retry {attempt}/{retries - 1} in {wait_seconds}s..."
+				)
+				time.sleep(wait_seconds)
+				continue
+			return (
+				"arXiv tool temporarily unavailable after retries. "
+				f"Last error: {message}. "
+				"If needed, answer with a limitation notice instead of failing."
+			)
+
+
+tools = [
+	Tool(
+		name="arxiv",
+		description=(
+			"A wrapper around Arxiv.org Useful for when you need to answer questions "
+			"about Physics, Mathematics, Computer Science, Quantitative Biology, "
+			"Quantitative Finance, Statistics, Electrical Engineering, and Economics "
+			"from scientific articles on arxiv.org. Input should be a search query."
+		),
+		func=safe_arxiv_search,
+	)
+]
 
 # Exercise 5.1 — Document the tool
 print("=== Exercise 5.1 — Tool Documentation ===")
@@ -51,7 +122,9 @@ client = Client()
 default_prompt = client.pull_prompt("hwchase17/react")
 agent = create_react_agent(llm, tools, default_prompt)
 agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True, handle_parsing_errors=True)
-agent_executor.invoke({"input": "Summarize the article 1605.08386 in English"})
+default_response = agent_executor.invoke({"input": "Summarize the article 1605.08386 in English"})
+print("\n--- Default Prompt Output ---")
+print(default_response["output"])
 
 # --- Exercise 5.2: Run with custom structured prompt ---
 print("\n=== Exercise 5.2 — Structured custom prompt run ===")
