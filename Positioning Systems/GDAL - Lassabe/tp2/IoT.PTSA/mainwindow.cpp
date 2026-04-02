@@ -4,7 +4,7 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), _display{new MapDisplay{this}} {
     setCentralWidget(_display);
-    setWindowTitle("My GIS Lab 2");
+    setWindowTitle("Belfort - Ruby Themed");
     resize(1000, 750);
 }
 
