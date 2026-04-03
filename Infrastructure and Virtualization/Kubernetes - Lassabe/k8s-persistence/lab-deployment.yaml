@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: student-lab-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: web-db-app
+  template:
+    metadata:
+      labels:
+        app: web-db-app
+    spec:
+      containers:
+      - name: postgres-db
+        image: lab-db:v1
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: POSTGRES_DB
+          value: my_db
+        - name: POSTGRES_USER
+          value: admin
+        - name: POSTGRES_PASSWORD
+          value: nimda
+        # --- ADD THIS SECTION ---
+        volumeMounts:
+        - name: postgres-storage
+          mountPath: /var/lib/postgresql/data # Standard path for Postgres data
+      - name: php-web
+        image: lab-web:v1
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 80
+      # --- ADD THIS SECTION AT THE BOTTOM ---
+      volumes:
+      - name: postgres-storage
+        persistentVolumeClaim:
+          claimName: postgres-local-pvc # Must match the name in local-pvc.yaml

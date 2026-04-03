@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nextcloud-stack
+spec:
+  [cite_start]replicas: 1 # Standard requirement [cite: 73, 74]
+  selector:
+    matchLabels:
+      app: nextcloud
+  template:
+    metadata:
+      labels:
+        app: nextcloud
+    spec:
+      containers:
+      - name: nextcloud-app
+        image: nextcloud:latest
+        env:
+        - name: POSTGRES_HOST
+          value: localhost
+        - name: POSTGRES_DB
+          value: nextcloud_db
+        - name: POSTGRES_USER
+          value: admin
+        - name: POSTGRES_PASSWORD
+          value: nimda
+        ports:
+        - containerPort: 80
+      - name: nextcloud-db
+        image: postgres:latest
+        env:
+        - name: POSTGRES_DB
+          value: nextcloud_db
+        - name: POSTGRES_USER
+          value: admin
+        - name: POSTGRES_PASSWORD
+          value: nimda
+        volumeMounts:
+        - name: nfs-storage
+          mountPath: /var/lib/postgresql/data
+      volumes:
+      - name: nfs-storage
+        persistentVolumeClaim:
+          claimName: nfs-pvc

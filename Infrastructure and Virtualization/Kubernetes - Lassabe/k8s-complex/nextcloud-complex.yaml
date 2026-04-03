@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nextcloud-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nextcloud-app
+  template:
+    metadata:
+      labels:
+        app: nextcloud-app
+    spec:
+      containers:
+      - name: nextcloud
+        image: nextcloud:latest
+        env:
+        - name: POSTGRES_HOST
+          value: postgres-service
+        - name: POSTGRES_DB
+          value: nextcloud_db
+        - name: POSTGRES_USER
+          value: nextcloud_user
+        - name: POSTGRES_PASSWORD
+          value: nextcloud_pwd
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: nc-data
+          mountPath: /var/www/html
+          subPath: nextcloud
+      volumes:
+      - name: nc-data
+        persistentVolumeClaim:
+          claimName: nextcloud-nfs-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nextcloud-service
+spec:
+  type: NodePort
+  selector:
+    app: nextcloud-app
+  ports:
+    - port: 80
+      targetPort: 80
+      nodePort: 32000

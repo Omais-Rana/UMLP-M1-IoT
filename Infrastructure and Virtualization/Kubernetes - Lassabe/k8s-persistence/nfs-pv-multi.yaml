@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nfs-pv-postgres
+spec:
+  capacity:
+    storage: 2Gi
+  accessModes:
+    - ReadWriteMany
+  nfs:
+    path: /srv/nfs/kubedata
+    server: 192.168.80.100
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nfs-pv-nextcloud
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteMany
+  nfs:
+    path: /srv/nfs/kubedata
+    server: 192.168.80.100

@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-nextcloud
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-nextcloud
+  template:
+    metadata:
+      labels:
+        app: postgres-nextcloud
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:latest
+        env:
+        - name: POSTGRES_DB
+          value: nextcloud_db
+        - name: POSTGRES_USER
+          value: nextcloud_user
+        - name: POSTGRES_PASSWORD
+          value: nextcloud_pwd
+        - name: PGDATA # This is the crucial addition for Postgres 18+
+          value: /var/lib/postgresql/data/pgdata
+        volumeMounts:
+        - name: pg-data
+          mountPath: /var/lib/postgresql # Mount at the parent directory
+          subPath: postgres
+      volumes:
+      - name: pg-data
+        persistentVolumeClaim:
+          claimName: postgres-nfs-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-service
+spec:
+  selector:
+    app: postgres-nextcloud
+  ports:
+    - protocol: TCP
+      port: 5432
