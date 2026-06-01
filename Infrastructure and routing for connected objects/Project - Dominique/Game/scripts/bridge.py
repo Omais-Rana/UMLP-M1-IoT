@@ -3,7 +3,7 @@ import requests
 import time
 
 # --- Configuration ---
-SERIAL_PORT = 'COM5' 
+SERIAL_PORT = 'COM7' 
 BAUD_RATE = 115200
 # Ensure this matches your Herd URL
 LARAVEL_URL = 'http://game.test/api/controller-data' 
